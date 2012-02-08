@@ -14,9 +14,11 @@
     },
 
     // Local vars
-    clients:  [],
-    entryID:  undefined,
-    projects: [],
+    DELAY:            60000,
+    clients:          [],
+    currentTimeoutID: undefined,
+    entryID:          undefined,
+    projects:         [],
 
     resources: {
       DAILY_ADD_URI:  "%@/daily/add.xml",
@@ -235,14 +237,25 @@
       this.sheet('entry')
           .render('entryData', { fields: fields, hours: hours })
           .show()
+
+      this.scheduleCheck(); // Keeps updating the timer
+    },
+
+    scheduleCheck: function() {
+      var self = this;
+      this.currentTimeoutID = setTimeout(function() {
+        self.firstRequest();
+      }, this.DELAY);
     },
 
     stopTimer: function() {
+      clearTimeout(this.currentTimeoutID); // Stop timer.
       this.disableSubmit(this.$('.entry'));
       this.request('stopTimer').perform(this.entryID);
     },
 
-    // Timer is exactly the same request as 'submit hours', but with hours field empty (API will start the timer instead of just saving hours)
+    // Submit hours or start timer.
+    // Timer is exactly the same request as 'submit hours', but with hours field empty (API will start the timer instead of just saving hours).
     submitForm: function() {
       var form = this.$('.submit_form form'), data, empties, test, divHours = form.find('.hours'), hours = form.find('input[name=hours]'),
           notes = form.find('textarea[name=notes]'), project = form.find('select[name=project_id]'), task = form.find('select[name=task_id]');
@@ -269,7 +282,7 @@
     timerRunning: function(data) {
       var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject');
 
-      if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running
+      if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running.
         match = lastDayEntry.notes.match(/Zendesk #([\d]*)/);
         if (match && match[1] == this.deps.currentTicketID) { return true; }
       }
@@ -347,6 +360,8 @@
       this.clients =  [];
       this.entryID =  undefined;
       this.projects = [];
+
+      clearTimeout(this.currentTimeoutID);
     },
 
     _throwException: function(field, response) {
