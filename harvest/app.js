@@ -74,7 +74,7 @@
                 '</div>',
       entryData:  '<ul>{{#fields}}<li class="field"><p><span class="field_label">{{label}}</span></p><p>{{value}}</p></li>{{/fields}}</ul>' +
                   '<p class="input">' +
-                  '  <span class="time">00:00</time></span>' +
+                  '  <span class="time">{{hours}}</time></span>' +
                   '  &nbsp;&nbsp; <input type="submit" value="{{I18n.form.stop_timer}}" class="submit" onclick="return false"/>' +
                   '</p>',
       formData: '<form>' +
@@ -223,16 +223,17 @@
 
     // From handleGetEverythingResult: json. From handleStartTimerResult: XML. Meaning: give any kind of data, it'll render.
     renderTimer: function(entry) {
-      var fields = [];
+      var fields = [], hours;
 
       this.entryID = this._getField(entry, 'id');
+      hours = this._floatToHours(this._getField(entry, 'hours'));
 
       ['client', 'project', 'task', 'notes'].forEach(function(item) {
         fields.pushObject({ label: this.I18n.t("form.%@".fmt(item)), value: this._getField(entry, item) });
       }, this);
 
       this.sheet('entry')
-          .render('entryData', { fields: fields })
+          .render('entryData', { fields: fields, hours: hours })
           .show()
     },
 
@@ -281,6 +282,13 @@
       divTimer.toggle();
       divHours.toggle();
       hours.val('');
+    },
+
+    _floatToHours: function(num) {
+      var hour = Math.floor(num), minutes = Math.floor((num - hour) * 60);
+      if ( hour < 10 ) { hour = "0%@".fmt(hour); }
+      if ( minutes < 10 ) { minutes = "0%@".fmt(minutes); }
+      return ("%@:%@".fmt(hour, minutes));
     },
 
     _getField: function(obj, field) {
