@@ -173,21 +173,15 @@
     },
 
     handleGetEverythingResult: function(e, data, textStatus, response) {
-      var self = this, array = data.projects || [], lastClient = '', notes;
+      var self = this, notes, projects = data.projects || [];
 
+      // Validation
       if ( this._throwException(data.projects, response) ) { return; }
-      if ( array.length === 0 ) { this.showError(this.I18n.t('form.no_projects')); }
+      if ( projects.length === 0 ) { this.showError(this.I18n.t('form.no_projects')); return; }
 
-      array.forEach(function(project) {
-        this.projects[project.id] = project.tasks;
-
-        if ( project.client === lastClient ) {
-          this.clients.get('lastObject').projects.pushObject(project);
-        } else {
-          this.clients.pushObject( { name: project.client, projects: [ project ] } );
-        }
-        lastClient = project.client;
-      }, this);
+      // If timer for this ticket running, render it, otherwise, show submit form
+      if ( this.timerRunning(data) ) { this.renderTimer(data.day_entries.get('lastObject')); return; }
+      this._populateClientsAndProjects(projects);
 
       notes = this.I18n.t('form.notes_message').fmt(this.deps.currentTicketID, this.deps.currentTicketSubject, this.deps.requesterName);
       this.sheet('submitForm')
@@ -208,15 +202,7 @@
 
       if ( this._throwException(dayEntry.length, response) ) { return ; }
 
-      this.entryID = dayEntry.children('id').text();
-
-      ['client', 'project', 'task', 'notes'].forEach(function(item) {
-        fields.pushObject({ label: this.I18n.t("form.%@".fmt(item)), value: dayEntry.children(item).text() });
-      }, this);
-
-      this.sheet('entry')
-          .render('entryData', { fields: fields })
-          .show()
+      this.renderTimer(dayEntry);
     },
 
     handleStopTimerResult: function(e, data, textStatus, response) {
@@ -233,6 +219,21 @@
       } else if ((charCode === 46 || charCode === 58) && (value.search(/\./) > -1 || value.search(/:/) > -1)) { // Only one '.' OR one ':'
         return false;
       }
+    },
+
+    // From handleGetEverythingResult: json. From handleStartTimerResult: XML. Meaning: give any kind of data, it'll render.
+    renderTimer: function(entry) {
+      var fields = [];
+
+      this.entryID = this._getField(entry, 'id');
+
+      ['client', 'project', 'task', 'notes'].forEach(function(item) {
+        fields.pushObject({ label: this.I18n.t("form.%@".fmt(item)), value: this._getField(entry, item) });
+      }, this);
+
+      this.sheet('entry')
+          .render('entryData', { fields: fields })
+          .show()
     },
 
     stopTimer: function() {
@@ -264,12 +265,32 @@
       }
     },
 
+    timerRunning: function(data) {
+      var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject');
+
+      if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running
+        match = lastDayEntry.notes.match(/Zendesk #([\d]*)/);
+        if (match && match[1] == this.deps.currentTicketID) { return true; }
+      }
+      return false;
+    },
+
     toggleHoursTimer: function() {
       var form = this.$('.submit_form'), divHours = form.find('.hours'), divTimer = form.find('.timer'), hours = form.find('input[name=hours]');
 
       divTimer.toggle();
       divHours.toggle();
       hours.val('');
+    },
+
+    _getField: function(obj, field) {
+      if ( typeof(obj.children) === 'function' ) { // XML
+        return obj.children(field).text();
+      } else if ( typeof(obj) === 'object' ) { // json
+        return obj[field];
+      } else {
+        return undefined;
+      }
     },
 
     _getRequest: function(resource) {
@@ -280,6 +301,21 @@
           'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.config.username, this.config.password))
         }
       };
+    },
+
+    _populateClientsAndProjects: function(array) {
+      var lastClient = '';
+
+      array.forEach(function(project) {
+        this.projects[project.id] = project.tasks;
+
+        if ( project.client === lastClient ) {
+          this.clients.get('lastObject').projects.pushObject(project);
+        } else {
+          this.clients.pushObject( { name: project.client, projects: [ project ] } );
+        }
+        lastClient = project.client;
+      }, this);
     },
 
     _postRequest: function(data, resource) {
