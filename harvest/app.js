@@ -52,7 +52,9 @@
         submitting: "Submitting..."
       },
 
-      problem: "There's been a problem: {{error}}"
+      problem: "There's been a problem: {{error}}",
+
+      timer_stopped: "Someone else stopped the timer!"
     },
 
     xmlTemplates: {
@@ -175,16 +177,20 @@
     },
 
     handleGetEverythingResult: function(e, data, textStatus, response) {
-      var self = this, notes, projects = data.projects || [];
+      var self = this, divTimer = this.$('.entry'), notes, projects = data.projects || [];
 
       // Validation
       if ( this._throwException(data.projects, response) ) { return; }
       if ( projects.length === 0 ) { this.showError(this.I18n.t('form.no_projects')); return; }
 
       // If timer for this ticket running, render it, otherwise, show submit form
-      if ( this.timerRunning(data) ) { this.renderTimer(data.day_entries.get('lastObject')); return; }
-      this._populateClientsAndProjects(projects);
+      if ( this.timerRunning(data) ) {
+        this.renderTimer(data.day_entries.get('lastObject')); return;
+      } else if ( divTimer.is(':visible') ) { // Special case: API returned that timer stopped, with no user input
+        this.showError(this.I18n.t('timer_stopped')); return;
+      }
 
+      this._populateClientsAndProjects(projects);
       notes = this.I18n.t('form.notes_message').fmt(this.deps.currentTicketID, this.deps.currentTicketSubject, this.deps.requesterName);
       this.sheet('submitForm')
           .render('formData', { clients: this.clients, notes: notes })
