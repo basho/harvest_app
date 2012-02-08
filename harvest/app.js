@@ -15,28 +15,33 @@
 
     // Local vars
     clients:  [],
+    entryID:  undefined,
     projects: [],
 
     resources: {
       DAILY_ADD_URI:  "%@/daily/add.xml",
-      DAILY_URI:      "%@/daily.json?",
-      PROXY_URI:      "/proxy/direct?url=%@&timeout=10"
+      DAILY_URI:      "%@/daily.json",
+      PROXY_URI:      "/proxy/direct?url=%@&timeout=10",
+      TIMER_URI:      "%@/daily/timer/%@.json"
     },
 
     translations: {
       exception: "An error occured: %@",
 
       form: {
-        empty:        "{{field}} is empty!",
-        no_projects:  "No projects found for your Harvest account!",
-        hours:        "Hours",
-        notes: {
-          message:    'Zendesk #%@ "%@" %@',
-          title:      'Notes'
-        },
-        project:      "Select Project",
-        success:      "Hours sucessfuly logged!",
-        task:         "Select Task"
+        add_duration:     "Add Duration",
+        cancel_duration:  "Cancel Duration",
+        client:           "Client",
+        empty:            "{{field}} is empty!",
+        no_projects:      "No projects found for your Harvest account!",
+        hours:            "Hours",
+        notes:            "Notes",
+        notes_message:    'Zendesk #%@ "%@" %@',
+        project:          "Project",
+        start_timer:      "Start Timer",
+        stop_timer:       "Stop Timer",
+        success:          "Hours sucessfuly logged!",
+        task:             "Task"
       },
 
       global: {
@@ -63,9 +68,15 @@
       main:     '<div class="harvest_app">' +
                 '  <div><h3>Harvest <span class="loader" style="display: none;">&nbsp;&nbsp;<img src="/console/assets/ajax-loader-1.gif"/></span></h3></div><hr/>' +
                 '  <section data-sheet-name="loading" class="loading"></section>' +
+                '  <section data-sheet-name="entry" class="entry"></section>' +
                 '  <section data-sheet-name="message" class="message"></section>' +
                 '  <section data-sheet-name="submitForm" class="submit_form"></section>' +
                 '</div>',
+      entryData:  '<ul>{{#fields}}<li class="field"><p><span class="field_label">{{label}}</span></p><p>{{value}}</p></li>{{/fields}}</ul>' +
+                  '<p class="input">' +
+                  '  <span class="time">00:00</time></span>' +
+                  '  &nbsp;&nbsp; <input type="submit" value="{{I18n.form.stop_timer}}" class="submit" onclick="return false"/>' +
+                  '</p>',
       formData: '<form>' +
                 '<p class="info">{{I18n.form.info}}</p>' +
                 '<div class="field">' +
@@ -83,14 +94,25 @@
                 '  </select></p>' +
                 '</div>' +
                 '<div class="field">' +
-                '  <p class="title">{{I18n.form.notes.title}}<p>' +
+                '  <p class="title">{{I18n.form.notes}}<p>' +
                 '  <p><textarea class="notes" name="notes">{{notes}}</textarea></p>' +
                 '</div>' +
-                '<div class="field">' +
-                '  <p class="title">{{I18n.form.hours}}<p>' +
-                '  <p><input class="input_hours" type="text" name="hours" value="{{hours}}" /></p>' +
+                '<div class="hours" style="display: none;">' +
+                '  <div class="field">' +
+                '    <p class="title">{{I18n.form.hours}}<p>' +
+                '    <p>' +
+                '      <input class="input_hours" type="text" name="hours" value="{{hours}}" />' +
+                '      &nbsp;&nbsp;&nbsp;&nbsp; <a class="cancel_duration" href="#" onclick="return false;">{{I18n.form.cancel_duration}}</a>' +
+                '    </p>' +
+                '  </div>' +
+                '  <p class="input"><input type="submit" value="{{I18n.global.submit}}" class="submit" onclick="return false"/></p>' +
                 '</div>' +
-                '<p class="input"><input type="submit" value="{{I18n.global.submit}}" class="submit" onclick="return false"/></p>' +
+                '<div class="timer">' +
+                '  <p class="input">' +
+                '    <input type="submit" value="{{I18n.form.start_timer}}" class="submit" onclick="return false"/>' +
+                '    &nbsp;&nbsp;&nbsp;&nbsp; <a class="add_duration" href="#" onclick="return false;">{{I18n.form.add_duration}}</a>' +
+                '  </p>' +
+                '</div>' +
                 '</form>',
       error:    '<div class="error">{{message}}</div>' +
                 '<div class="back"><a href="#" onclick="return false;"><< {{I18n.global.back}}</a></div>',
@@ -100,41 +122,43 @@
 
     launch: function(host, config) {
       Em.run.next(this, function() {
-        this.request('getEverything').perform();
+        this.firstRequest();
       });
     },
 
     requests: {
-      'getEverything':  function() { return this._getRequest(); },
-      'postHours':      function(data) { return this._postRequest(data); }
+      'getEverything':  function() { return this._getRequest( this.resources.DAILY_URI.fmt(this.config.url) ); },
+      'postHours':      function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.config.url) ); },
+      'startTimer':     function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.config.url) ); },
+      'stopTimer':      function(entryID) { return this._getRequest( this.resources.TIMER_URI.fmt(this.config.url, entryID) ); }
     },
 
     events: {
-      'change .submit_form .projects':      'changeProject',
-      'click .message .back':               'backToForm',
-      'click .submit_form .submit':         'submitForm',
-      'keypress .hours input[name=hours]':  'maskUserInput',
+      'change .submit_form .projects':        'changeProject',
+      'click .entry .submit':                 'stopTimer',
+      'click .submit_form .add_duration':     'toggleHoursTimer',
+      'click .submit_form .cancel_duration':  'toggleHoursTimer',
+      'click .message .back':                 'firstRequest',
+      'click .submit_form .submit':           'submitForm',
+      'keypress .hours input[name=hours]':    'maskUserInput',
 
       /** Ajax Callbocks **/
       'getEverything.success':  'handleGetEverythingResult',
       'postHours.success':      'handlePostHoursResult',
+      'startTimer.success':     'handleStartTimerResult',
+      'stopTimer.success':      'handleStopTimerResult',
 
       'getEverything.fail':     'handleFailedRequest',
-      'postHours.fail':         'handleFailedRequest'
-    },
-
-    backToForm: function() {
-      this.enableSubmit(this.$('.submit_form form'));
-      this.sheet('submitForm').show();
+      'postHours.fail':         'handleFailedRequest',
+      'startTimer.fail':        'handleFailedRequest',
+      'stopTimer.fail':         'handleFailedRequest'
     },
 
     changeProject: function() {
-      var form =      this.$('.submit_form form'),
-          hours =     form.find('input[name=hours]').val(),
-          notes =     form.find('textarea[name=notes]').val(),
-          projectID = form.find('select[name=project_id]').val();
+      var form = this.$('.submit_form form'), hours = form.find('input[name=hours]').val(),
+          notes = form.find('textarea[name=notes]').val(), projectID = form.find('select[name=project_id]').val();
 
-      if (projectID.length === 0) { return; }
+      if ( projectID.length === 0 ) { return; }
 
       this.sheet('submitForm')
           .render('formData', { clients: this.clients, hours: hours, notes: notes, tasks: this.projects[projectID] })
@@ -143,19 +167,21 @@
       this.$('.submit_form form select[name=project_id]').val(projectID);
     },
 
-    handleGetEverythingResult: function(e, data) {
+    firstRequest: function() {
+      this._resetAppState();
+      this.request('getEverything').perform();
+    },
+
+    handleGetEverythingResult: function(e, data, textStatus, response) {
       var self = this, array = data.projects || [], lastClient = '', notes;
 
-      if (data.length === 0)
-        this.showError(this.I18n.t('form.no_projects'));
-
-      this.clients =  [];
-      this.projects = [];
+      if ( this._throwException(data.projects, response) ) { return; }
+      if ( array.length === 0 ) { this.showError(this.I18n.t('form.no_projects')); }
 
       array.forEach(function(project) {
         this.projects[project.id] = project.tasks;
 
-        if (project.client === lastClient) {
+        if ( project.client === lastClient ) {
           this.clients.get('lastObject').projects.pushObject(project);
         } else {
           this.clients.pushObject( { name: project.client, projects: [ project ] } );
@@ -163,19 +189,38 @@
         lastClient = project.client;
       }, this);
 
-      notes = this.I18n.t('form.notes.message').fmt(this.deps.currentTicketID, this.deps.currentTicketSubject, this.deps.requesterName);
+      notes = this.I18n.t('form.notes_message').fmt(this.deps.currentTicketID, this.deps.currentTicketSubject, this.deps.requesterName);
       this.sheet('submitForm')
           .render('formData', { clients: this.clients, notes: notes })
           .show();
     },
 
     handlePostHoursResult: function(e, data, textStatus, response) {
-      var dayEntry = this.$(data).find('day_entry'), form = this.$('.submit_form form');
+      var dayEntry = this.$(data).find('day_entry');
 
-      if (!dayEntry.length) {
-        this.showError(this.I18n.t('exception').fmt(response.responseText)); // API returns text and status code 200 when request fails =/
-        return;
-      }
+      if ( this._throwException(dayEntry.length, response) ) { return; }
+
+      this.showSuccess(this.I18n.t('form.success'));
+    },
+
+    handleStartTimerResult: function(e, data, textStatus, response) {
+      var fields = [], dayEntry = this.$(data).find('day_entry');
+
+      if ( this._throwException(dayEntry.length, response) ) { return ; }
+
+      this.entryID = dayEntry.children('id').text();
+
+      ['client', 'project', 'task', 'notes'].forEach(function(item) {
+        fields.pushObject({ label: this.I18n.t("form.%@".fmt(item)), value: dayEntry.children(item).text() });
+      }, this);
+
+      this.sheet('entry')
+          .render('entryData', { fields: fields })
+          .show()
+    },
+
+    handleStopTimerResult: function(e, data, textStatus, response) {
+      if ( this._throwException(data.hours, response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
@@ -190,41 +235,60 @@
       }
     },
 
-    submitForm: function() {
-      var form = this.$('.submit_form form'), data, empties, hours = form.find('input[name=hours]'), notes = form.find('textarea[name=notes]'),
-          project = form.find('select[name=project_id]'), task = form.find('select[name=task_id]');
+    stopTimer: function() {
+      this.disableSubmit(this.$('.entry'));
+      this.request('stopTimer').perform(this.entryID);
+    },
 
-      empties = [project, task, hours].filter(function(item, index, self) {
-        if (!item.val()) { return true; }
+    // Timer is exactly the same request as 'submit hours', but with hours field empty (API will start the timer instead of just saving hours)
+    submitForm: function() {
+      var form = this.$('.submit_form form'), data, empties, test, divHours = form.find('.hours'), hours = form.find('input[name=hours]'),
+          notes = form.find('textarea[name=notes]'), project = form.find('select[name=project_id]'), task = form.find('select[name=task_id]');
+
+      test = divHours.is(':visible') ? [project, task, hours] : [project, task]
+      empties = test.filter(function(item, index, self) {
+        if ( !item.val() ) { return true; }
       });
 
-      if (empties.get('length')) {
+      if ( empties.get('length') ) {
         alert( this.I18n.t('form.empty', { field: empties.get('firstObject').attr('name').replace('_id', '').capitalize() }) );
         return false;
       }
 
       this.disableSubmit(form);
       data = this._xmlTemplateAdd({ hours: hours.val(), notes: notes.val(), project_id: project.val(), spent_at: Date('dd/mm/yyyy'), task_id: task.val() });
-      this.request('postHours').perform(data);
+      if ( divHours.is(':visible') ) {
+        this.request('postHours').perform(data);
+      } else {
+        this.request('startTimer').perform(data);
+      }
     },
 
-    _getRequest: function() {
+    toggleHoursTimer: function() {
+      var form = this.$('.submit_form'), divHours = form.find('.hours'), divTimer = form.find('.timer'), hours = form.find('input[name=hours]');
+
+      divTimer.toggle();
+      divHours.toggle();
+      hours.val('');
+    },
+
+    _getRequest: function(resource) {
       return {
         dataType: 'json',
-        url:      this._proxyURL( this.resources.DAILY_URI.fmt(this.config.url) ),
+        url:      this._proxyURL( resource ),
         headers:      {
           'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.config.username, this.config.password))
         }
       };
     },
 
-    _postRequest: function(data) {
+    _postRequest: function(data, resource) {
       return {
         dataType:     'xml',
         data:         data,
         processData:  false,
         type:         'POST',
-        url:          this._proxyURL( this.resources.DAILY_ADD_URI.fmt(this.config.url) ),
+        url:          this._proxyURL( resource ),
         headers:      {
           'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.config.username, this.config.password))
         }
@@ -233,6 +297,20 @@
 
     _proxyURL: function(resource) {
       return encodeURI(this.resources.PROXY_URI.fmt(resource));
+    },
+
+    _resetAppState: function() {
+      this.clients =  [];
+      this.entryID =  undefined;
+      this.projects = [];
+    },
+
+    _throwException: function(field, response) {
+      if ( !field ) {
+        this.showError(this.I18n.t('exception').fmt(response.responseText)); // API returns text and status code 200 when request fails =/
+        return true;
+      }
+      return false;
     },
 
     _xmlTemplateAdd: function(options) {
@@ -256,7 +334,7 @@
     },
 
     // API returns text and status code 200 when request fails =/
-    handleFailedRequest: function(event, jqXHR, textStatus, errorThrown) { debugger; this.showError( this.I18n.t('problem', { error: jqXHR.responseText }) ); },
+    handleFailedRequest: function(event, jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: jqXHR.responseText }) ); },
 
     showError: function(msg) {
       this.sheet('message')
