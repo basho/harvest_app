@@ -249,7 +249,7 @@
 
       this.sheet('entry')
           .render('entryData', { fields: fields, hours: hours })
-          .show()
+          .show();
 
       this.scheduleCheck(); // Keeps updating the timer
     },
@@ -273,7 +273,7 @@
       var form = this.$('.submit_form form'), data, empties, test, divHours = form.find('.hours'), hours = form.find('input[name=hours]'),
           notes = form.find('textarea[name=notes]'), project = form.find('select[name=project_id]'), task = form.find('select[name=task_id]');
 
-      test = divHours.is(':visible') ? [project, task, hours] : [project, task]
+      test = divHours.is(':visible') ? [project, task, hours] : [project, task];
       empties = test.filter(function(item, index, self) {
         if ( !item.val() ) { return true; }
       });
@@ -293,7 +293,7 @@
     },
 
     timerRunning: function(data) {
-      var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject');
+      var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject'), match;
 
       if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running.
         match = lastDayEntry.notes.match(/Zendesk #([\d]*)/);
