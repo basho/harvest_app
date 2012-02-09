@@ -23,6 +23,7 @@
     resources: {
       DAILY_ADD_URI:  "%@/daily/add.xml",
       DAILY_URI:      "%@/daily.json",
+      HARVEST_URI:    "%@/daily",
       PROXY_URI:      "/proxy/direct?url=%@&timeout=10",
       TIMER_URI:      "%@/daily/timer/%@.json"
     },
@@ -54,7 +55,9 @@
 
       problem: "There's been a problem: {{error}}",
 
-      timer_stopped: "Someone else stopped the timer!"
+      timer_stopped: "Someone else stopped the timer!",
+
+      view_timesheet: "View your Harvest timesheet"
     },
 
     xmlTemplates: {
@@ -75,6 +78,7 @@
                 '  <section data-sheet-name="entry" class="entry"></section>' +
                 '  <section data-sheet-name="message" class="message"></section>' +
                 '  <section data-sheet-name="submitForm" class="submit_form"></section>' +
+                '  <section class="to_harvest"><hr/><p><a href="#" onclick="" class="view_timesheet" target="_blank">{{I18n.view_timesheet}}...</a></p></section>' +
                 '</div>',
       entryData:  '<ul>{{#fields}}<li class="field"><p><span class="field_label">{{label}}</span></p><p>{{value}}</p></li>{{/fields}}</ul>' +
                   '<p class="input">' +
@@ -144,6 +148,7 @@
       'click .submit_form .cancel_duration':  'toggleHoursTimer',
       'click .message .back':                 'firstRequest',
       'click .submit_form .submit':           'submitForm',
+      'click .to_harvest .view_timesheet':    'changeHref',
       'keypress .hours input[name=hours]':    'maskUserInput',
 
       /** Ajax Callbocks **/
@@ -157,6 +162,8 @@
       'startTimer.fail':        'handleFailedRequest',
       'stopTimer.fail':         'handleFailedRequest'
     },
+
+    changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', this.resources.HARVEST_URI.fmt(this.config.url)); },
 
     changeProject: function() {
       var form = this.$('.submit_form form'), hours = form.find('input[name=hours]').val(),
