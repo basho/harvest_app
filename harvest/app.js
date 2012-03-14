@@ -1,3 +1,5 @@
+//= require ./app.js
+
 (function() {
 
   ZendeskApps.HarvestApp = ZendeskApps.App.extend({
@@ -8,9 +10,9 @@
     defaultSheet: 'loading',
 
     dependencies: {
-      currentTicketID:      'Zendesk.currentTicket.id',
-      currentTicketSubject: 'Zendesk.currentTicket.subject',
-      requesterName:        'Zendesk.currentTicket.requester.name'
+      currentTicketID:      'Zendesk.workspaces.current.ticket.id',
+      currentTicketSubject: 'Zendesk.workspaces.current.ticket.subject',
+      requesterName:        'Zendesk.workspaces.current.ticket.requester.name'
     },
 
     // Local vars
