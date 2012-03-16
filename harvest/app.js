@@ -10,9 +10,9 @@
     defaultSheet: 'loading',
 
     dependencies: {
-      currentTicketID:      'Zendesk.workspaces.current.ticket.id',
-      currentTicketSubject: 'Zendesk.workspaces.current.ticket.subject',
-      requesterName:        'Zendesk.workspaces.current.ticket.requester.name'
+      currentTicketID:      'workspace.ticket.id',
+      currentTicketSubject: 'workspace.ticket.subject',
+      requesterName:        'workspace.ticket.requester.name'
     },
 
     // Local vars
