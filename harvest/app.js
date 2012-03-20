@@ -131,9 +131,7 @@
     },
 
     launch: function(host, config) {
-      Em.run.next(this, function() {
-        this.firstRequest();
-      });
+      this.firstRequest();
     },
 
     requests: {
@@ -192,7 +190,7 @@
       if ( this._throwException(data.projects, response) ) { return; }
       if ( projects.length === 0 ) { this.showError(this.I18n.t('form.no_projects')); return; }
 
-      // If timer for this ticket running, render it, otherwise, show submit form
+      // If timer for this ticket is running, render it, otherwise, show submit form
       if ( this.timerRunning(data) ) {
         this.renderTimer(data.day_entries.get('lastObject')); return;
       } else if ( divTimer.is(':visible') ) { // Special case: API returned that timer stopped, with no user input
