@@ -130,15 +130,15 @@
                 '<div class="back"><a href="#" onclick="return false;"><< {{I18n.global.back}}</a></div>'
     },
 
-    launch: function(host, config) {
+    launch: function(host, settings) {
       this.firstRequest();
     },
 
     requests: {
-      'getEverything':  function() { return this._getRequest( this.resources.DAILY_URI.fmt(this.config.url) ); },
-      'postHours':      function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.config.url) ); },
-      'startTimer':     function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.config.url) ); },
-      'stopTimer':      function(entryID) { return this._getRequest( this.resources.TIMER_URI.fmt(this.config.url, entryID) ); }
+      'getEverything':  function() { return this._getRequest( this.resources.DAILY_URI.fmt(this.settings.url) ); },
+      'postHours':      function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.settings.url) ); },
+      'startTimer':     function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.settings.url) ); },
+      'stopTimer':      function(entryID) { return this._getRequest( this.resources.TIMER_URI.fmt(this.settings.url, entryID) ); }
     },
 
     events: {
@@ -163,7 +163,7 @@
       'stopTimer.fail':         'handleFailedRequest'
     },
 
-    changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', this.resources.HARVEST_URI.fmt(this.config.url)); },
+    changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', this.resources.HARVEST_URI.fmt(this.settings.url)); },
 
     changeProject: function() {
       var form = this.$('.submit_form form'), hours = form.find('input[name=hours]').val(),
@@ -332,7 +332,7 @@
         dataType: 'json',
         url:      this._proxyURL( resource ),
         headers:      {
-          'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.config.username, this.config.password))
+          'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.settings.username, this.settings.password))
         }
       };
     },
@@ -360,7 +360,7 @@
         type:         'POST',
         url:          this._proxyURL( resource ),
         headers:      {
-          'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.config.username, this.config.password))
+          'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.settings.username, this.settings.password))
         }
       };
     },
