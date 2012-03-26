@@ -1,3 +1,9 @@
 {
-  "description": "Perform time tracking on ticket-level and submit your data directly to time tracking service Harvest."
+  "description": "Perform time tracking on ticket-level and submit your data directly to time tracking service Harvest.",
+
+  "configuration": {
+    "password": { "label": "Password" },
+    "username": { "label": "Username" },
+    "url":      { "label": "URL" }
+  }
 }
