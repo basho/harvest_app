@@ -1,7 +1,6 @@
 (function() {
 
-  return ZendeskApps.App.extend({
-    location: ZendeskApps.Site.TICKET_PROPERTIES,
+  return ZendeskApps.defineApp(ZendeskApps.Site.TICKET_PROPERTIES, {
     appID: '/apps/01-harvest/versions/1.0.0',
     name: 'Harvest',
 
