@@ -72,7 +72,7 @@
 
     templates: {
       main:     '<div class="harvest_app">' +
-                '  <div><h3>Harvest <span class="loader" style="display: none;">&nbsp;&nbsp;<img src="/console/assets/ajax-loader-1.gif"/></span></h3></div><hr/>' +
+                '  <div><h3>Harvest <span class="loader" style="display: none;"></span></h3></div><hr/>' +
                 '  <section data-sheet-name="loading" class="loading"></section>' +
                 '  <section data-sheet-name="entry" class="entry"></section>' +
                 '  <section data-sheet-name="message" class="message"></section>' +
