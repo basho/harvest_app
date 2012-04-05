@@ -1,5 +1,6 @@
 {
   "name": "Harvest",
+  "private": true,
 
   "configuration": {
     "password": {
