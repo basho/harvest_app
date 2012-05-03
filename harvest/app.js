@@ -2,7 +2,6 @@
 
   return ZendeskApps.defineApp(ZendeskApps.Site.TICKET_PROPERTIES, {
     appID: '/apps/01-harvest/versions/1.0.0',
-    name: 'Harvest',
 
     defaultSheet: 'loading',
 
@@ -27,38 +26,6 @@
       TIMER_URI:      "%@/daily/timer/%@.json"
     },
 
-    translations: {
-      exception: "An error occured: %@",
-
-      form: {
-        add_duration:     "Add Duration",
-        cancel_duration:  "Cancel Duration",
-        client:           "Client",
-        empty:            "{{field}} is empty!",
-        no_projects:      "No projects found for your Harvest account!",
-        hours:            "Hours",
-        notes:            "Notes",
-        notes_message:    'Zendesk #%@ "%@" %@',
-        project:          "Project",
-        start_timer:      "Start Timer",
-        stop_timer:       "Stop Timer",
-        success:          "Hours sucessfuly logged!",
-        task:             "Task"
-      },
-
-      global: {
-        back:       "Back",
-        submit:     "Submit",
-        submitting: "Submitting..."
-      },
-
-      problem: "There's been a problem: {{error}}",
-
-      timer_stopped: "Someone else stopped the timer!",
-
-      view_timesheet: "View your Harvest timesheet"
-    },
-
     xmlTemplates: {
       ADD:  'body=' +
             '<request>' +
@@ -72,7 +39,7 @@
 
     templates: {
       main:     '<div class="harvest_app">' +
-                '  <div><h3>Harvest <span class="loader" style="display: none;"></span></h3></div><hr/>' +
+                '  <div><h3>{{I18n.app.name}} <span class="loader" style="display: none;"></span></h3></div><hr/>' +
                 '  <section data-sheet-name="loading" class="loading"></section>' +
                 '  <section data-sheet-name="entry" class="entry"></section>' +
                 '  <section data-sheet-name="message" class="message"></section>' +
