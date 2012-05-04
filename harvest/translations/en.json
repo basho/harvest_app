@@ -1,9 +1,43 @@
 {
-  "description": "Perform time tracking on ticket-level and submit your data directly to time tracking service Harvest.",
+  "app": {
+    "configuration": {
+      "name":     { "label": "Name" },
+      "password": { "label": "Password" },
+      "username": { "label": "Username" },
+      "url":      { "label": "URL" }
+    },
 
-  "configuration": {
-    "password": { "label": "Password" },
-    "username": { "label": "Username" },
-    "url":      { "label": "URL" }
-  }
+    "description":  "Perform time tracking on ticket-level and submit your data directly to time tracking service Harvest.",
+    "name":         "Harvest"
+  },
+
+  "exception": "An error occured: %@",
+
+  "form": {
+    "add_duration":     "Add Duration",
+    "cancel_duration":  "Cancel Duration",
+    "client":           "Client",
+    "empty":            "{{field}} is empty!",
+    "no_projects":      "No projects found for your Harvest account!",
+    "hours":            "Hours",
+    "notes":            "Notes",
+    "notes_message":    "Zendesk #%@ \"%@\" %@",
+    "project":          "Project",
+    "start_timer":      "Start Timer",
+    "stop_timer":       "Stop Timer",
+    "success":          "Hours sucessfuly logged!",
+    "task":             "Task"
+  },
+
+  "global": {
+    "back":       "Back",
+    "submit":     "Submit",
+    "submitting": "Submitting..."
+  },
+
+  "problem": "There's been a problem: {{error}}",
+
+  "timer_stopped": "Someone else stopped the timer!",
+
+  "view_timesheet": "View your Harvest timesheet"
 }
