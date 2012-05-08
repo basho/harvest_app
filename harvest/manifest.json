@@ -1,5 +1,5 @@
 {
-  "name": "Harvest",
+  "default_locale": "en",
   "private": true,
 
   "configuration": {
