@@ -7,7 +7,7 @@
       "url":      { "label": "URL" }
     },
 
-    "description":  "Perform time tracking on ticket-level and submit your data directly to time tracking service Harvest.",
+    "description":  "Easily track time spent on tickets with Harvest",
     "name":         "Harvest"
   },
 
