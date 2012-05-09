@@ -22,13 +22,11 @@
       DAILY_ADD_URI:  "%@/daily/add.xml",
       DAILY_URI:      "%@/daily.json",
       HARVEST_URI:    "%@/daily",
-      PROXY_URI:      "/proxy/direct?url=%@&timeout=10",
       TIMER_URI:      "%@/daily/timer/%@.json"
     },
 
     xmlTemplates: {
-      ADD:  'body=' +
-            '<request>' +
+      ADD:  '<request>' +
             '  <notes><![CDATA[%@]]></notes>' +
             '  <hours>%@</hours>' +
             '  <project_id type="integer">%@</project_id>' +
@@ -294,8 +292,8 @@
     _getRequest: function(resource) {
       return {
         dataType: 'json',
-        url:      this._proxyURL( resource ),
-        headers:      {
+        url:      resource,
+        headers: {
           'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.settings.username, this.settings.password))
         }
       };
@@ -322,15 +320,11 @@
         data:         data,
         processData:  false,
         type:         'POST',
-        url:          this._proxyURL( resource ),
-        headers:      {
+        url:          resource,
+        headers: {
           'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.settings.username, this.settings.password))
         }
       };
-    },
-
-    _proxyURL: function(resource) {
-      return encodeURI(this.resources.PROXY_URI.fmt(resource));
     },
 
     _resetAppState: function() {
