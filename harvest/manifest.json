@@ -1,7 +1,7 @@
 {
   "author": {
     "name": "Zendesk",
-    "email": "dev@zendesk.com"
+    "email": "support@zendesk.com"
   },
   "default_locale": "en",
   "private": true,
