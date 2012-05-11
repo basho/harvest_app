@@ -35,63 +35,6 @@
             '</request>'
     },
 
-    templates: {
-      main:     '<div class="harvest_app">' +
-                '  <div><h3>{{I18n.app.name}} <span class="loader" style="display: none;"></span></h3></div><hr/>' +
-                '  <section data-sheet-name="loading" class="loading"></section>' +
-                '  <section data-sheet-name="entry" class="entry"></section>' +
-                '  <section data-sheet-name="message" class="message"></section>' +
-                '  <section data-sheet-name="submitForm" class="submit_form"></section>' +
-                '  <section class="to_harvest"><hr/><p><a href="#" onclick="" class="view_timesheet" target="_blank">{{I18n.view_timesheet}}...</a></p></section>' +
-                '</div>',
-      entryData:  '<ul>{{#fields}}<li class="field"><p><span class="field_label">{{label}}</span></p><p>{{value}}</p></li>{{/fields}}</ul>' +
-                  '<p class="input">' +
-                  '  <span class="time">{{hours}}</time></span>' +
-                  '  &nbsp;&nbsp; <input type="submit" value="{{I18n.form.stop_timer}}" class="submit" onclick="return false"/>' +
-                  '</p>',
-      formData: '<form>' +
-                '<p class="info">{{I18n.form.info}}</p>' +
-                '<div class="field">' +
-                '  <p class="title">{{I18n.form.project}}</p>' +
-                '  <p><select class="projects" name="project_id"><option></option>' +
-                '    {{#clients}}<optgroup label="{{name}}">' +
-                '      {{#projects}}<option value="{{id}}">{{name}}</option>{{/projects}}' +
-                '    </optgroup>{{/clients}}' +
-                '  </select></p>' +
-                '</div>' +
-                '<div class="field">' +
-                '  <p class="title">{{I18n.form.task}}<p>' +
-                '  <p><select name="task_id">' +
-                '    {{#tasks}}<option value="{{id}}">{{name}}</option>{{/tasks}}' +
-                '  </select></p>' +
-                '</div>' +
-                '<div class="field">' +
-                '  <p class="title">{{I18n.form.notes}}<p>' +
-                '  <p><textarea class="notes" name="notes">{{notes}}</textarea></p>' +
-                '</div>' +
-                '<div class="hours" style="display: none;">' +
-                '  <div class="field">' +
-                '    <p class="title">{{I18n.form.hours}}<p>' +
-                '    <p>' +
-                '      <input class="input_hours" type="text" name="hours" value="{{hours}}" />' +
-                '      &nbsp;&nbsp;&nbsp;&nbsp; <a class="cancel_duration" href="#" onclick="return false;">{{I18n.form.cancel_duration}}</a>' +
-                '    </p>' +
-                '  </div>' +
-                '  <p class="input"><input type="submit" value="{{I18n.global.submit}}" class="submit" onclick="return false"/></p>' +
-                '</div>' +
-                '<div class="timer">' +
-                '  <p class="input">' +
-                '    <input type="submit" value="{{I18n.form.start_timer}}" class="submit" onclick="return false"/>' +
-                '    &nbsp;&nbsp;&nbsp;&nbsp; <a class="add_duration" href="#" onclick="return false;">{{I18n.form.add_duration}}</a>' +
-                '  </p>' +
-                '</div>' +
-                '</form>',
-      error:    '<div class="error">{{message}}</div>' +
-                '<div class="back"><a href="#" onclick="return false;"><< {{I18n.global.back}}</a></div>',
-      success:  '<div class="success">{{message}}</div>' +
-                '<div class="back"><a href="#" onclick="return false;"><< {{I18n.global.back}}</a></div>'
-    },
-
     launch: function(host, settings) {
       this.firstRequest();
     },
@@ -114,10 +57,10 @@
       'keypress .hours input[name=hours]':    'maskUserInput',
 
       /** Ajax Callbocks **/
-      'getEverything.success':  'handleGetEverythingResult',
-      'postHours.success':      'handlePostHoursResult',
-      'startTimer.success':     'handleStartTimerResult',
-      'stopTimer.success':      'handleStopTimerResult',
+      'getEverything.done':  'handleGetEverythingResult',
+      'postHours.done':      'handlePostHoursResult',
+      'startTimer.done':     'handleStartTimerResult',
+      'stopTimer.done':      'handleStopTimerResult',
 
       'getEverything.fail':     'handleFailedRequest',
       'postHours.fail':         'handleFailedRequest',

@@ -1,0 +1,2 @@
+<div class="success">{{message}}</div>
+<div class="back"><a href="#" onclick="return false;"><< {{I18n.global.back}}</a></div>
