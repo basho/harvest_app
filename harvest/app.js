@@ -57,10 +57,10 @@
       'keypress .hours input[name=hours]':    'maskUserInput',
 
       /** Ajax Callbocks **/
-      'getEverything.success':  'handleGetEverythingResult',
-      'postHours.success':      'handlePostHoursResult',
-      'startTimer.success':     'handleStartTimerResult',
-      'stopTimer.success':      'handleStopTimerResult',
+      'getEverything.done':  'handleGetEverythingResult',
+      'postHours.done':      'handlePostHoursResult',
+      'startTimer.done':     'handleStartTimerResult',
+      'stopTimer.done':      'handleStopTimerResult',
 
       'getEverything.fail':     'handleFailedRequest',
       'postHours.fail':         'handleFailedRequest',
