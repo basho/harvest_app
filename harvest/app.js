@@ -6,9 +6,9 @@
     defaultState: 'loading',
 
     dependencies: {
-      currentTicketID:      'workspace.ticket.id',
-      currentTicketSubject: 'workspace.ticket.subject',
-      requesterName:        'workspace.ticket.requester.name'
+      currentTicketID:      'ticket.id',
+      currentTicketSubject: 'ticket.subject',
+      requesterName:        'requester.name'
     },
 
     // Local vars
