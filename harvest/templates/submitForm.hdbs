@@ -1,0 +1,38 @@
+<div class="submit_form">
+  <form>
+  <div class="field">
+    <p class="title">{{t "form.project"}}</p>
+    <p><select class="projects" name="project_id"><option></option>
+      {{#clients}}<optgroup label="{{name}}">
+        {{#projects}}<option value="{{id}}">{{name}}</option>{{/projects}}
+      </optgroup>{{/clients}}
+    </select></p>
+  </div>
+  <div class="field">
+    <p class="title">{{t "form.task"}}<p>
+    <p><select name="task_id">
+      {{#tasks}}<option value="{{id}}">{{name}}</option>{{/tasks}}
+    </select></p>
+  </div>
+  <div class="field">
+    <p class="title">{{t "form.notes"}}<p>
+    <p><textarea class="notes" name="notes">{{notes}}</textarea></p>
+  </div>
+  <div class="hours" style="display: none;">
+    <div class="field">
+      <p class="title">{{t "form.hours"}}<p>
+      <p>
+        <input class="input_hours" type="text" name="hours" value="{{hours}}" />
+        &nbsp;&nbsp;&nbsp;&nbsp; <a class="cancel_duration" href="#" onclick="return false;">{{t "form.cancel_duration"}}</a>
+      </p>
+    </div>
+    <p class="input"><input type="submit" value="{{t "global.submit"}}" class="submit" onclick="return false"/></p>
+  </div>
+  <div class="timer">
+    <p class="input">
+      <input type="submit" value="{{t "form.start_timer"}}" class="submit" onclick="return false"/>
+      &nbsp;&nbsp;&nbsp;&nbsp; <a class="add_duration" href="#" onclick="return false;">{{t "form.add_duration"}}</a>
+    </p>
+  </div>
+  </form>
+</div>

@@ -10,7 +10,7 @@
     "name":         "Harvest"
   },
 
-  "exception": "An error occured: %@",
+  "exception": "An error occured: {{error}}",
 
   "form": {
     "add_duration":     "Add Duration",

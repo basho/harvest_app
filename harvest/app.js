@@ -3,7 +3,7 @@
   return ZendeskApps.defineApp(ZendeskApps.Site.TICKET_PROPERTIES, {
     appID: '/apps/01-harvest/versions/1.0.0',
 
-    defaultSheet: 'loading',
+    defaultState: 'loading',
 
     dependencies: {
       currentTicketID:      'workspace.ticket.id',
@@ -40,10 +40,10 @@
     },
 
     requests: {
-      'getEverything':  function() { return this._getRequest( this.resources.DAILY_URI.fmt(this.settings.url) ); },
-      'postHours':      function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.settings.url) ); },
-      'startTimer':     function(data) { return this._postRequest( data, this.resources.DAILY_ADD_URI.fmt(this.settings.url) ); },
-      'stopTimer':      function(entryID) { return this._getRequest( this.resources.TIMER_URI.fmt(this.settings.url, entryID) ); }
+      'getEverything':  function() { return this._getRequest( helpers.fmt(this.resources.DAILY_URI, this.settings.url) ); },
+      'postHours':      function(data) { return this._postRequest( data, helpers.fmt(this.resources.DAILY_ADD_URI, this.settings.url) ); },
+      'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(this.resources.DAILY_ADD_URI, this.settings.url) ); },
+      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(this.resources.TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
@@ -68,7 +68,7 @@
       'stopTimer.fail':         'handleFailedRequest'
     },
 
-    changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', this.resources.HARVEST_URI.fmt(this.settings.url)); },
+    changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(this.resources.HARVEST_URI, this.settings.url)); },
 
     changeProject: function() {
       var form = this.$('.submit_form form'), hours = form.find('input[name=hours]').val(),
@@ -76,16 +76,14 @@
 
       if ( projectID.length === 0 ) { return; }
 
-      this.sheet('submitForm')
-          .render('formData', { clients: this.clients, hours: hours, notes: notes, tasks: this.projects[projectID] })
-          .show();
+      this.switchTo('submitForm', { clients: this.clients, hours: hours, notes: notes, tasks: this.projects[projectID] });
 
       this.$('.submit_form form select[name=project_id]').val(projectID);
     },
 
     firstRequest: function() {
       this._resetAppState();
-      this.request('getEverything').perform();
+      this.ajax('getEverything');
     },
 
     handleGetEverythingResult: function(e, data, textStatus, response) {
@@ -103,10 +101,8 @@
       }
 
       this._populateClientsAndProjects(projects);
-      notes = this.I18n.t('form.notes_message').fmt(this.deps.currentTicketID, this.deps.currentTicketSubject, this.deps.requesterName);
-      this.sheet('submitForm')
-          .render('formData', { clients: this.clients, notes: notes })
-          .show();
+      notes = helpers.fmt(this.I18n.t('form.notes_message'), this.dependency('currentTicketID'), this.dependency('currentTicketSubject'), this.dependency('requesterName'));
+      this.switchTo('submitForm', { clients: this.clients, notes: notes });
     },
 
     handlePostHoursResult: function(e, data, textStatus, response) {
@@ -149,12 +145,10 @@
       hours = this._floatToHours(this._getField(entry, 'hours'));
 
       ['client', 'project', 'task', 'notes'].forEach(function(item) {
-        fields.pushObject({ label: this.I18n.t("form.%@".fmt(item)), value: this._getField(entry, item) });
+        fields.pushObject({ label: this.I18n.t(helpers.fmt("form.%@", item)), value: this._getField(entry, item) });
       }, this);
 
-      this.sheet('entry')
-          .render('entryData', { fields: fields, hours: hours })
-          .show();
+      this.switchTo('entry', { fields: fields, hours: hours });
 
       this.scheduleCheck(); // Keeps updating the timer
     },
@@ -169,7 +163,7 @@
     stopTimer: function() {
       clearTimeout(this.currentTimeoutID); // Stop timer.
       this.disableSubmit(this.$('.entry'));
-      this.request('stopTimer').perform(this.entryID);
+      this.ajax('stopTimer', this.entryID);
     },
 
     // Submit hours or start timer.
@@ -191,9 +185,9 @@
       this.disableSubmit(form);
       data = this._xmlTemplateAdd({ hours: hours.val(), notes: notes.val(), project_id: project.val(), spent_at: Date('dd/mm/yyyy'), task_id: task.val() });
       if ( divHours.is(':visible') ) {
-        this.request('postHours').perform(data);
+        this.ajax('postHours', data);
       } else {
-        this.request('startTimer').perform(data);
+        this.ajax('startTimer', data);
       }
     },
 
@@ -202,7 +196,7 @@
 
       if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running.
         match = lastDayEntry.notes.match(/Zendesk #([\d]*)/);
-        if (match && match[1] == this.deps.currentTicketID) { return true; }
+        if (match && match[1] == this.dependency('currentTicketID')) { return true; }
       }
       return false;
     },
@@ -217,9 +211,9 @@
 
     _floatToHours: function(num) {
       var hour = Math.floor(num), minutes = Math.floor((num - hour) * 60);
-      if ( hour < 10 ) { hour = "0%@".fmt(hour); }
-      if ( minutes < 10 ) { minutes = "0%@".fmt(minutes); }
-      return ("%@:%@".fmt(hour, minutes));
+      if ( hour < 10 ) { hour = helpers.fmt("0%@", hour); }
+      if ( minutes < 10 ) { minutes = helpers.fmt("0%@", minutes); }
+      return (helpers.fmt("%@:%@", hour, minutes));
     },
 
     _getField: function(obj, field) {
@@ -237,7 +231,7 @@
         dataType: 'json',
         url:      resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.settings.username, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
         }
       };
     },
@@ -265,7 +259,7 @@
         type:         'POST',
         url:          resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode('%@:%@'.fmt(this.settings.username, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
         }
       };
     },
@@ -280,14 +274,14 @@
 
     _throwException: function(field, response) {
       if ( !field ) {
-        this.showError(this.I18n.t('exception').fmt(response.responseText)); // API returns text and status code 200 when request fails =/
+        this.showError(this.I18n.t('exception', { error: response.responseText })); // API returns text and status code 200 when request fails =/
         return true;
       }
       return false;
     },
 
     _xmlTemplateAdd: function(options) {
-      return encodeURI( this.xmlTemplates.ADD.fmt(options.notes, options.hours, options.project_id, options.task_id, options.spent_at) );
+      return encodeURI( helpers.fmt(this.xmlTemplates.ADD, options.notes, options.hours, options.project_id, options.task_id, options.spent_at) );
     },
 
     /** Helpers **/
@@ -310,15 +304,11 @@
     handleFailedRequest: function(event, jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: jqXHR.responseText }) ); },
 
     showError: function(msg) {
-      this.sheet('message')
-        .render('error', { message: msg })
-        .show();
+      this.switchTo('error', { message: msg });
     },
 
     showSuccess: function(msg) {
-      this.sheet('message')
-        .render('success', { message: msg })
-        .show();
+      this.switchTo('success', { message: msg });
     }
 
   });
