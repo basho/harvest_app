@@ -2,6 +2,6 @@
   <ul>{{#fields}}<li class="field"><p><span class="field_label">{{label}}</span></p><p>{{value}}</p></li>{{/fields}}</ul>
   <p class="input">
     <span class="time">{{hours}}</time></span>
-    &nbsp;&nbsp; <input type="submit" value="{{t "form.stop_timer"}}" class="submit" onclick="return false"/>
+    &nbsp;&nbsp; <input type="submit" value="{{t "form.stop_timer"}}" class="submit btn" onclick="return false"/>
   </p>
 </div>

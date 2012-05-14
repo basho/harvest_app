@@ -26,11 +26,11 @@
         &nbsp;&nbsp;&nbsp;&nbsp; <a class="cancel_duration" href="#" onclick="return false;">{{t "form.cancel_duration"}}</a>
       </p>
     </div>
-    <p class="input"><input type="submit" value="{{t "global.submit"}}" class="submit" onclick="return false"/></p>
+    <p class="input"><input type="submit" value="{{t "global.submit"}}" class="submit btn" onclick="return false"/></p>
   </div>
   <div class="timer">
     <p class="input">
-      <input type="submit" value="{{t "form.start_timer"}}" class="submit" onclick="return false"/>
+      <input type="submit" value="{{t "form.start_timer"}}" class="submit btn" onclick="return false"/>
       &nbsp;&nbsp;&nbsp;&nbsp; <a class="add_duration" href="#" onclick="return false;">{{t "form.add_duration"}}</a>
     </p>
   </div>
