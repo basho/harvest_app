@@ -1,5 +1,5 @@
 <div class="harvest_app">
-  <div><h3>Harvest <span class="loader" style="display: none;"></span></h3></div><hr/>
+  <div><h3>{{t "app.name"}} <span class="loader" style="display: none;"></span></h3></div><hr/>
   <div data-main></div>
-  <section class="to_harvest"><hr/><p><a href="#" onclick="" class="view_timesheet" target="_blank">t "view_timesheet"...</a></p></section>
+  <section class="to_harvest"><hr/><p><a href="#" onclick="" class="view_timesheet" target="_blank">{{t "view_timesheet"}}...</a></p></section>
 </div>
