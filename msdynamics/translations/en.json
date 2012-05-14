@@ -1,7 +1,7 @@
 {
   "app": {
    "description": "Show custom Microsoft Dynamics data about the ticket requester",
-   "name":        "Microsoft Dynamics"
+   "name":        "Microsoft"
   },
 
   "problem": "There's been a problem: {{error}}",
