@@ -1,6 +1,19 @@
-<div class="crm_integration_app">
+<style>
+  .msdynamics_app h3 {
+    line-height: 30px;
+  }
+
+  .msdynamics_app .logo {
+    background: transparent url({{assetURL "logo-small.png"}}) no-repeat;
+    background-size: 25px 25px;
+    float: right;
+    height: 25px;
+    width: 25px;
+  }
+</style>
+<div class="msdynamics_app crm_integration_app">
   <div>
-    <h3>{{t "app.name"}} <span class="loader" style="display: none;"></span></h3>
+    <h3>{{t "app.name"}} <span class="loader" style="display: none;"></span> <span class="logo"></span></h3>
   </div><hr/>
   <div class="crm_integration_app" data-main>
     <section class="append_error"></section>

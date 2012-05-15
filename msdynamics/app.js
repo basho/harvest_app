@@ -61,7 +61,7 @@
       var records = data.records || [];
 
       //remove spinning
-      this.$('.loader').hide();
+      this.hideLoader();
 
       // Returned 303 and location header, which redirects to show and returns request result
       // If response is slow, GET show can return 202 (just show the data and avoid entering a loop)
@@ -93,7 +93,7 @@
       this.switchTo('loading');
       this.currentDelay = this.INITIAL_DELAY;
       this.timesRequested = 0;
-      this.$('.loader').hide();
+      this.hideLoader();
       this.$('.append_error').html('');
       clearTimeout(this.currentTimeoutID);
     },
@@ -108,7 +108,7 @@
       }
 
       // show spinning
-      this.$('.loader').show();
+      this.showLoader();
 
       this.currentTimeoutID = setTimeout(function() {
         self.ajax('syncUserInfo', self.dependency('requesterID'));
@@ -131,6 +131,16 @@
     },
 
     handleFailedRequest: function(event, jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: errorThrown.toString() }) ); },
+
+    hideLoader: function() {
+      this.$('.loader').hide();
+      this.$('.logo').show();
+    },
+
+    showLoader: function() {
+      this.$('.logo').hide();
+      this.$('.loader').show();
+    },
 
     showError: function(msg) {
       this.switchTo('error', { message: msg });

@@ -1,5 +1,18 @@
+<style>
+  .harvest_app h3 {
+    line-height: 30px;
+  }
+
+  .harvest_app .logo {
+    background: transparent url({{assetURL "logo-small.png"}}) no-repeat;
+    background-size: 23px 23px;
+    float: right;
+    height: 25px;
+    width: 25px;
+  }
+</style>
 <div class="harvest_app">
-  <div><h3>{{t "app.name"}} <span class="loader" style="display: none;"></span></h3></div><hr/>
+  <div><h3>{{t "app.name"}} </span> <span class="logo"></span></h3></div><hr/>
   <div data-main></div>
   <section class="to_harvest"><hr/><p><a href="#" onclick="" class="view_timesheet" target="_blank">{{t "view_timesheet"}}...</a></p></section>
 </div>
