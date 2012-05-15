@@ -12,7 +12,7 @@
   }
 </style>
 <div class="harvest_app">
-  <div><h3>{{t "app.name"}} </span> <span class="logo"></span></h3></div><hr/>
+  <div><h3>{{setting "name"}} </span> <span class="logo"></span></h3></div><hr/>
   <div data-main></div>
   <section class="to_harvest"><hr/><p><a href="#" onclick="" class="view_timesheet" target="_blank">{{t "view_timesheet"}}...</a></p></section>
 </div>
