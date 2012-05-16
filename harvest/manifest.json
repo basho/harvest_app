@@ -4,7 +4,7 @@
     "email": "support@zendesk.com"
   },
   "default_locale": "en",
-  "private": true,
+  "private": false,
 
   "configuration": {
     "password": {
