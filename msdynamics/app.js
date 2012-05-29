@@ -1,6 +1,6 @@
 (function() {
 
-  return ZendeskApps.defineApp(ZendeskApps.Site.TICKET_PROPERTIES, {
+  return ZendeskApps.defineApp(ZendeskApps.Site.TICKET_SIDEBAR, {
     appID: '/apps/01-crm-integration/versions/1.0.0',
 
     // Local vars
