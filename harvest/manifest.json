@@ -3,6 +3,8 @@
     "name": "Zendesk",
     "email": "support@zendesk.com"
   },
+
+  "location": "ticket_sidebar",
   "default_locale": "en",
   "private": false,
 

@@ -1,6 +1,6 @@
 (function() {
 
-  return ZendeskApps.defineApp(ZendeskApps.Site.TICKET_SIDEBAR, {
+  return ZendeskApps.defineApp({
     appID: '/apps/01-harvest/versions/1.0.0',
 
     defaultState: 'loading',
