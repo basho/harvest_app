@@ -8,20 +8,23 @@
   "default_locale": "en",
   "private": false,
 
-  "configuration": {
-    "password": {
-      "type": "password",
+  "parameters": [
+    {
+      "name": "url",
+      "type": "url",
       "required": "true"
     },
 
-    "username": {
+    {
+      "name": "username",
       "type": "text",
       "required": "true"
     },
 
-    "url": {
-      "type": "url",
+    {
+      "name": "password",
+      "type": "password",
       "required": "true"
     }
-  }
+  ]
 }

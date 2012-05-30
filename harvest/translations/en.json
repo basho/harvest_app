@@ -1,6 +1,6 @@
 {
   "app": {
-    "configuration": {
+    "parameters": {
       "password": { "label": "Password" },
       "username": { "label": "Username" },
       "url":      { "label": "URL" }
