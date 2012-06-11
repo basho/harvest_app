@@ -7,6 +7,7 @@
   "location": "ticket_sidebar",
   "default_locale": "en",
   "private": false,
+  "frameworkVersion": "0.5",
 
   "parameters": [
     {
