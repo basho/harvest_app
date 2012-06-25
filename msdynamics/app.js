@@ -12,10 +12,6 @@
 
     defaultState: 'loading',
 
-    dependencies: {
-      requesterID:  'requester.id'
-    },
-
     requests: {
       lookupByID:   function(userID) { return { url: encodeURI(helpers.fmt("/api/v2beta/crm/%@.json", userID)) }; },
       syncUserInfo: function(userID) { return { url: encodeURI(helpers.fmt("/api/v2beta/crm/%@/sync_user_info.json", userID)) }; }
@@ -25,7 +21,7 @@
       'click .records .records_toggle': 'toggleShowMore',
 
       /** App callbacks **/
-      'requesterID.changed': 'firstLookup',
+      'ticket.requester.id.changed': 'firstLookup',
 
       /** Ajax callbacks **/
       'lookupByID.done':   'handleLookupResult',
@@ -38,8 +34,8 @@
     firstLookup: function() {
       this._resetAppState();
 
-      if (this.dependency('requesterID'))
-        this.ajax('lookupByID', this.dependency('requesterID'));
+      if (this.ticket().requester().id())
+        this.ajax('lookupByID', this.ticket().requester().id());
     },
 
     handleLookupResult: function(e, data, textStatus, response) {
@@ -111,7 +107,7 @@
       this.showLoader();
 
       this.currentTimeoutID = setTimeout(function() {
-        self.ajax('syncUserInfo', self.dependency('requesterID'));
+        self.ajax('syncUserInfo', self.ticket().requester().id());
       }, this.currentDelay);
 
       this.currentDelay *= 2;

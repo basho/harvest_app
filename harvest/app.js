@@ -5,12 +5,6 @@
 
     defaultState: 'loading',
 
-    dependencies: {
-      currentTicketID:      'ticket.id',
-      currentTicketSubject: 'ticket.subject',
-      requesterName:        'requester.name'
-    },
-
     // Local vars
     DELAY:            60000,
     clients:          [],
@@ -101,7 +95,7 @@
       }
 
       this._populateClientsAndProjects(projects);
-      notes = helpers.fmt(this.I18n.t('form.notes_message'), this.dependency('currentTicketID'), this.dependency('currentTicketSubject'), this.dependency('requesterName'));
+      notes = helpers.fmt(this.I18n.t('form.notes_message'), this.ticket().id(), this.ticket().subject(), this.ticket().requester().name());
       this.switchTo('submitForm', { clients: this.clients, notes: notes });
     },
 
@@ -196,7 +190,7 @@
 
       if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running.
         match = lastDayEntry.notes.match(/Zendesk #([\d]*)/);
-        if (match && match[1] == this.dependency('currentTicketID')) { return true; }
+        if (match && match[1] == this.ticket().id()) { return true; }
       }
       return false;
     },
