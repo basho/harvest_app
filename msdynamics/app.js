@@ -21,7 +21,8 @@
       'click .records .records_toggle': 'toggleShowMore',
 
       /** App callbacks **/
-      'ticket.requester.id.changed': 'firstLookup',
+      'app.activated':                'firstLookup',
+      'ticket.requester.id.changed':  'firstLookup',
 
       /** Ajax callbacks **/
       'lookupByID.done':   'handleLookupResult',
