@@ -1,8 +1,6 @@
 (function() {
 
   return {
-    appID: '/apps/01-crm-integration/versions/1.0.0',
-
     // Local vars
     currentDelay: 5000,
     currentTimeoutID: undefined,
