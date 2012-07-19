@@ -97,7 +97,7 @@
       this.switchTo('submitForm', { clients: this.clients, notes: notes });
     },
 
-    handlePostHoursResult: function(e, data, textStatus, response) {
+    handlePostHoursResult: function(data, textStatus, response) {
       var dayEntry = this.$(data).find('day_entry');
 
       if ( this._throwException(dayEntry.length, response) ) { return; }
@@ -105,7 +105,7 @@
       this.showSuccess(this.I18n.t('form.success'));
     },
 
-    handleStartTimerResult: function(e, data, textStatus, response) {
+    handleStartTimerResult: function(data, textStatus, response) {
       var fields = [], dayEntry = this.$(data).find('day_entry');
 
       if ( this._throwException(dayEntry.length, response) ) { return ; }
@@ -113,7 +113,7 @@
       this.renderTimer(dayEntry);
     },
 
-    handleStopTimerResult: function(e, data, textStatus, response) {
+    handleStopTimerResult: function(data, textStatus, response) {
       if ( this._throwException(data.hours, response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
