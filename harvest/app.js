@@ -78,7 +78,7 @@
       this.ajax('getEverything');
     },
 
-    handleGetEverythingResult: function(e, data, textStatus, response) {
+    handleGetEverythingResult: function(data, textStatus, response) {
       var self = this, divTimer = this.$('.entry'), notes, projects = data.projects || [];
 
       // Validation
@@ -293,7 +293,7 @@
     },
 
     // API returns text and status code 200 when request fails =/
-    handleFailedRequest: function(event, jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: jqXHR.responseText }) ); },
+    handleFailedRequest: function(jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: jqXHR.responseText }) ); },
 
     showError: function(msg) {
       this.switchTo('error', { message: msg });
