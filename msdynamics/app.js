@@ -125,7 +125,7 @@
       this.$('.append_error').html(msg);
     },
 
-    handleFailedRequest: function(event, jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: errorThrown.toString() }) ); },
+    handleFailedRequest: function(jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: errorThrown.toString() }) ); },
 
     hideLoader: function() {
       this.$('.loader').hide();
