@@ -13,19 +13,19 @@
     {
       "name": "url",
       "type": "url",
-      "required": "true"
+      "required": true
     },
 
     {
       "name": "username",
       "type": "text",
-      "required": "true"
+      "required": true
     },
 
     {
       "name": "password",
       "type": "password",
-      "required": "true"
+      "required": true
     }
   ]
 }
