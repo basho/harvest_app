@@ -37,7 +37,7 @@
         this.ajax('lookupByID', this.ticket().requester().id());
     },
 
-    handleLookupResult: function(e, data, textStatus, response) {
+    handleLookupResult: function(data, textStatus, response) {
       var records = data.records || [];
 
       if (response.status === 202) { // syncing user with CRM
@@ -52,7 +52,7 @@
       this._renderRecords(records);
     },
 
-    handleSyncUserInfoResult: function(e, data, textStatus, response) {
+    handleSyncUserInfoResult: function(data, textStatus, response) {
       var records = data.records || [];
 
       //remove spinning
@@ -125,7 +125,7 @@
       this.$('.append_error').html(msg);
     },
 
-    handleFailedRequest: function(event, jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: errorThrown.toString() }) ); },
+    handleFailedRequest: function(jqXHR, textStatus, errorThrown) { this.showError( this.I18n.t('problem', { error: errorThrown.toString() }) ); },
 
     hideLoader: function() {
       this.$('.loader').hide();
