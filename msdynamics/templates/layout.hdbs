@@ -1,7 +1,0 @@
-<div class="msdynamics_app crm_integration_app">
-  <div>
-    <h3>{{setting "name"}} <span class="loader" style="display: none;"></span> <span class="logo"></span></h3>
-  </div><hr/>
-  <div data-main></div>
-  <section class="append_error"></section>
-</div>
