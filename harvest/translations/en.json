@@ -6,8 +6,7 @@
       "url":      { "label": "URL" }
     },
 
-    "description":  "Track time on tickets, with powerful reporting",
-    "name":         "Harvest"
+    "description":  "Track time on tickets, with powerful reporting"
   },
 
   "exception": "An error occured: {{error}}",
