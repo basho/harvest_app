@@ -17,16 +17,6 @@
       TIMER_URI:      "%@/daily/timer/%@.json"
     },
 
-    xmlTemplates: {
-      ADD:  '<request>' +
-            '  <notes><![CDATA[%@]]></notes>' +
-            '  <hours>%@</hours>' +
-            '  <project_id type="integer">%@</project_id>' +
-            '  <task_id type="integer">%@</task_id>' +
-            '  <spent_at type="date">%@</spent_at>' +
-            '</request>'
-    },
-
     launch: function(host, settings) {
       this.firstRequest();
     },
@@ -273,7 +263,7 @@
     },
 
     _xmlTemplateAdd: function(options) {
-      return encodeURI( helpers.fmt(this.xmlTemplates.ADD, options.notes, options.hours, options.project_id, options.task_id, options.spent_at) );
+      return encodeURI( this.renderTemplate('add.xml', options) );
     },
 
     /** Helpers **/
