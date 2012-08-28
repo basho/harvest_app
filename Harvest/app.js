@@ -263,7 +263,7 @@
     },
 
     _xmlTemplateAdd: function(options) {
-      return encodeURI( this.renderTemplate('add.xml', options) );
+      return this.renderAndEscapeXML('add.xml', options);
     },
 
     /** Helpers **/
@@ -291,6 +291,13 @@
 
     showSuccess: function(msg) {
       this.switchTo('success', { message: msg });
+    },
+
+    renderAndEscapeXML: function(templateName, data) {
+      Object.keys(data).forEach(function(key) {
+        data[key] = helpers.safeString( data[key] );
+      });
+      return encodeURI( this.renderTemplate(templateName, data) );
     }
 
   };
