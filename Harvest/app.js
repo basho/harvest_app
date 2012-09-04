@@ -17,10 +17,6 @@
       TIMER_URI:      "%@/daily/timer/%@.json"
     },
 
-    launch: function(host, settings) {
-      this.firstRequest();
-    },
-
     requests: {
       'getEverything':  function() { return this._getRequest( helpers.fmt(this.resources.DAILY_URI, this.settings.url) ); },
       'postHours':      function(data) { return this._postRequest( data, helpers.fmt(this.resources.DAILY_ADD_URI, this.settings.url) ); },
@@ -37,6 +33,8 @@
       'click .submit_form .submit':           'submitForm',
       'click .to_harvest .view_timesheet':    'changeHref',
       'keypress .hours input[name=hours]':    'maskUserInput',
+
+      'app.activated': 'firstRequest',
 
       /** Ajax Callbocks **/
       'getEverything.done':  'handleGetEverythingResult',
@@ -63,7 +61,10 @@
       this.$('.submit_form form select[name=project_id]').val(projectID);
     },
 
-    firstRequest: function() {
+    firstRequest: function(data) {
+      var firstLoad = data && data.firstLoad;
+      if ( !firstLoad ) { return; }
+
       this._resetAppState();
       this.ajax('getEverything');
     },
