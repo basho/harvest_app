@@ -34,7 +34,7 @@
       'click .to_harvest .view_timesheet':    'changeHref',
       'keypress .hours input[name=hours]':    'maskUserInput',
 
-      'app.activated': 'firstRequest',
+      'app.activated': 'appActivated',
 
       /** Ajax Callbocks **/
       'getEverything.done':  'handleGetEverythingResult',
@@ -46,6 +46,13 @@
       'postHours.fail':         'handleFailedRequest',
       'startTimer.fail':        'handleFailedRequest',
       'stopTimer.fail':         'handleFailedRequest'
+    },
+
+    appActivated: function(data) {
+      var firstLoad = data && data.firstLoad;
+      if ( !firstLoad ) { return; }
+
+      this.firstRequest();
     },
 
     changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(this.resources.HARVEST_URI, this.settings.url)); },
@@ -61,10 +68,7 @@
       this.$('.submit_form form select[name=project_id]').val(projectID);
     },
 
-    firstRequest: function(data) {
-      var firstLoad = data && data.firstLoad;
-      if ( !firstLoad ) { return; }
-
+    firstRequest: function() {
       this._resetAppState();
       this.ajax('getEverything');
     },
