@@ -33,6 +33,8 @@
     "submitting": "Submitting..."
   },
 
+  "invalidResponse": "API response contains invalid data!",
+
   "problem": "There's been a problem: {{error}}",
 
   "timer_stopped": "Someone else stopped the timer!",
