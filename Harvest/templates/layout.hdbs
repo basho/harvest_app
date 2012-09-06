@@ -5,5 +5,5 @@
 <section data-main />
 <section class="to_harvest">
   <hr/>
-  <p><a href="#" onclick="" class="view_timesheet" target="_blank">{{t "view_timesheet"}}...</a></p>
+  <p><a href="#" onclick="" class="view_timesheet" target="_blank">{{t "view_timesheet"}}</a></p>
 </section>
