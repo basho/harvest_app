@@ -1,3 +1,88 @@
+ul {
+  margin-left: 0;
+}
+
+select {
+  border: 1px solid #CCCCCC;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+}
+
 header .logo {
   background-size: 23px 23px;
+}
+
+.entry {
+  .field_label {
+    font-weight: bold;
+  }
+
+  .field {
+    margin-bottom: 5px;
+  }
+
+  .input {
+    margin-top: 15px;
+  }
+
+  .time {
+    font-size: 14px;
+    font-weight: bold;
+  }
+}
+
+.message {
+  font-weight: bold;
+
+  .back {
+    margin: 10px 0;
+  }
+
+  .error {
+    color: red;
+  }
+
+  .success {
+    color: green;
+  }
+}
+
+.submit_form {
+  .field {
+    margin-bottom: 10px;
+
+    .input_hours {
+      width: 50px
+    }
+
+    .notes {
+      width: 270px
+    }
+
+    .projects {
+      width: 280px;
+    }
+
+    .title {
+      margin-bottom: 3px;
+    }
+  }
+}
+
+.to_harvest {
+  a {
+    color: gray;
+  }
+
+  hr {
+    margin: 1em 0;
+  }
+
+  p {
+    line-height: 12px;
+    margin-bottom: 4px;
+  }
 }

@@ -1,7 +1,14 @@
 <div class="entry">
-  <ul>{{#fields}}<li class="field"><p><span class="field_label">{{label}}</span></p><p>{{value}}</p></li>{{/fields}}</ul>
+  <ul>
+    {{#fields}}
+      <li class="field">
+        <p><span class="field_label">{{label}}</span></p>
+        <p>{{value}}</p>
+      </li>
+    {{/fields}}
+  </ul>
   <p class="input">
-    <span class="time">{{hours}}</time></span>
+    <span class="time">{{hours}}</span>
     &nbsp;&nbsp; <input type="submit" value="{{t "form.stop_timer"}}" class="submit btn btn-inverse" onclick="return false"/>
   </p>
 </div>
