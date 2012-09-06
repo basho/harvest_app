@@ -1,6 +1,6 @@
 <header>
   <span class="logo"/>
-  <h3>{{setting "name"}}</h3>
+  <h3>{{setting "title"}}</h3>
 </header>
 <section data-main />
 <section class="to_harvest">
