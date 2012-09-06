@@ -109,7 +109,7 @@
     },
 
     handleStopTimerResult: function(data, textStatus, response) {
-      if ( this._throwException(data.hours, response) ) { return; }
+      if ( this._throwException(data.hours != null, response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
