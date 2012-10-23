@@ -56,8 +56,10 @@
     changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(HARVEST_URI, this.settings.url)); },
 
     changeProject: function() {
-      var form = this.$('.submit_form form'), hours = form.find('input[name=hours]').val(),
-          notes = form.find('textarea[name=notes]').val(), projectID = form.find('select[name=project_id]').val();
+      var form = this.$('.submit_form form'),
+          hours = form.find('input[name=hours]').val(),
+          notes = form.find('textarea[name=notes]').val(),
+          projectID = form.find('select[name=project_id]').val();
 
       if ( projectID.length === 0 ) { return; }
 
@@ -72,7 +74,9 @@
     },
 
     handleGetEverythingResult: function(data, textStatus, response) {
-      var self = this, divTimer = this.$('.entry'), notes, projects = data.projects || [];
+      var divTimer = this.$('.entry'),
+          projects = data.projects || [],
+          notes;
 
       // Validation
       if ( this._throwException(data.projects, response) ) { return; }
