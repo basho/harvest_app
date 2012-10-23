@@ -1,5 +1,10 @@
 (function() {
 
+  var DAILY_ADD_URI =  "%@/daily/add.xml",
+      DAILY_URI     =  "%@/daily.json",
+      HARVEST_URI   = "%@/daily",
+      TIMER_URI     = "%@/daily/timer/%@.json";
+
   return {
     defaultState: 'loading',
 
@@ -10,18 +15,11 @@
     entryID:          undefined,
     projects:         [],
 
-    resources: {
-      DAILY_ADD_URI:  "%@/daily/add.xml",
-      DAILY_URI:      "%@/daily.json",
-      HARVEST_URI:    "%@/daily",
-      TIMER_URI:      "%@/daily/timer/%@.json"
-    },
-
     requests: {
-      'getEverything':  function() { return this._getRequest( helpers.fmt(this.resources.DAILY_URI, this.settings.url) ); },
-      'postHours':      function(data) { return this._postRequest( data, helpers.fmt(this.resources.DAILY_ADD_URI, this.settings.url) ); },
-      'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(this.resources.DAILY_ADD_URI, this.settings.url) ); },
-      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(this.resources.TIMER_URI, this.settings.url, entryID) ); }
+      'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
@@ -55,7 +53,7 @@
       this.firstRequest();
     },
 
-    changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(this.resources.HARVEST_URI, this.settings.url)); },
+    changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(HARVEST_URI, this.settings.url)); },
 
     changeProject: function() {
       var form = this.$('.submit_form form'), hours = form.find('input[name=hours]').val(),
