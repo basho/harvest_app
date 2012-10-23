@@ -19,7 +19,7 @@
     "no_projects":      "No projects found for your Harvest account!",
     "hours":            "Hours",
     "notes":            "Notes",
-    "notes_message":    "Zendesk #%@ \"%@\" %@",
+    "notes_message":    "Zendesk #{{ticket.id}} \"{{ticket.subject}}\" {{ticket.requester.name}}",
     "project":          "Project",
     "start_timer":      "Start Timer",
     "stop_timer":       "Stop Timer",

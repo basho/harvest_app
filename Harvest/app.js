@@ -90,7 +90,9 @@
       }
 
       this._populateClientsAndProjects(projects);
-      notes = helpers.fmt(this.I18n.t('form.notes_message'), this.ticket().id(), this.ticket().subject(), this.ticket().requester().name());
+      // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
+      //       and deployed to production, remove ", this._renderContext()".
+      notes = this.I18n.t('form.notes_message', this._renderContext());
       this.switchTo('submitForm', { clients: this.clients, notes: notes });
     },
 
