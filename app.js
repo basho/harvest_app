@@ -3,7 +3,8 @@
   var DAILY_ADD_URI =  "%@/daily/add.xml",
       DAILY_URI     =  "%@/daily.json",
       HARVEST_URI   = "%@/daily",
-      TIMER_URI     = "%@/daily/timer/%@.json";
+      TIMER_URI     = "%@/daily/timer/%@.json",
+      HOURS_URI     = "%@/external/hours.json?namespace=%@&external_id=%@";
 
   return {
     defaultState: 'loading',
@@ -17,33 +18,39 @@
 
     requests: {
       'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getHours':       function(ticketID) { return this._getRequest( helpers.fmt(HOURS_URI, this.settings.url, currentAccount().subdomain()) ); },
       'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
-      'change .submit_form .projects':        'changeProject',
-      'click .entry .submit':                 'stopTimer',
-      'click .submit_form .add_duration':     'toggleHoursTimer',
-      'click .submit_form .cancel_duration':  'toggleHoursTimer',
-      'click .message .back':                 'firstRequest',
-      'click .submit_form .submit':           'submitForm',
-      'click .to_harvest .view_timesheet':    'changeHref',
-      'keypress .hours input[name=hours]':    'maskUserInput',
+      'change .submit_form .projects'       : 'changeProject',
+      'click .entry .submit'                : 'stopTimer',
+      'click .submit_form .add_duration'    : 'toggleHoursTimer',
+      'click .submit_form .cancel_duration' : 'toggleHoursTimer',
+      'click .message .back'                : 'firstRequest',
+      'click .submit_form .submit'          : 'submitForm',
+      'click .to_harvest .view_timesheet'   : 'changeHref',
+      'keypress .hours input[name=hours]'   : 'maskUserInput',
 
-      'app.activated': 'appActivated',
+      /* Data API events */
+      'currentAccount.subdomain.changed'    : 'handleSubdomainResult',
+
+      'app.activated'                       : 'appActivated',
 
       /** Ajax Callbocks **/
-      'getEverything.done':  'handleGetEverythingResult',
-      'postHours.done':      'handlePostHoursResult',
-      'startTimer.done':     'handleStartTimerResult',
-      'stopTimer.done':      'handleStopTimerResult',
+      'getEverything.done'                  : 'handleGetEverythingResult',
+      'getHours.done'                       : 'handleGetHoursResult',
+      'postHours.done'                      : 'handlePostHoursResult',
+      'startTimer.done'                     : 'handleStartTimerResult',
+      'stopTimer.done'                      : 'handleStopTimerResult',
 
-      'getEverything.fail':     'handleFailedRequest',
-      'postHours.fail':         'handleFailedRequest',
-      'startTimer.fail':        'handleFailedRequest',
-      'stopTimer.fail':         'handleFailedRequest'
+      'getEverything.fail'                  : 'handleFailedRequest',
+      'getHours.fail'                       : 'handleFailedRequest',
+      'postHours.fail'                      : 'handleFailedRequest',
+      'startTimer.fail'                     : 'handleFailedRequest',
+      'stopTimer.fail'                      : 'handleFailedRequest'
     },
 
     appActivated: function(data) {
