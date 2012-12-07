@@ -18,7 +18,7 @@
 
     requests: {
       'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
-      'getHours':       function(ticketID) { return this._getRequest( helpers.fmt(HOURS_URI, this.settings.url, currentAccount().subdomain()) ); },
+      'getHours':       function(ticketID) { return this._getRequest( helpers.fmt(HOURS_URI, this.settings.url, this.currentAccount().subdomain()) ); },
       'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
