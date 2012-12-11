@@ -1,9 +1,10 @@
 {
   "app": {
     "parameters": {
-      "password": { "label": "Password" },
-      "username": { "label": "Username" },
-      "url":      { "label": "URL" }
+      "password"    : { "label": "Password" },
+      "username"    : { "label": "Username" },
+      "url"         : { "label": "URL" },
+      "defaultNote" : { "label": "Default Note" }
     },
 
     "description":  "Track time on tickets, with powerful reporting"
