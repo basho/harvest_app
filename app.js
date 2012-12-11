@@ -90,10 +90,8 @@
       }
 
       this._populateClientsAndProjects(projects);
-      // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
-      //       and deployed to production, remove ", this._renderContext()".
-      notes = this.I18n.t('form.notes_message', this._renderContext());
-      this.switchTo('submitForm', { clients: this.clients, notes: notes });
+
+      this.switchTo('submitForm', { clients: this.clients, notes: this._getNotes() });
     },
 
     handlePostHoursResult: function(data, textStatus, response) {
@@ -215,6 +213,15 @@
       } else {
         return undefined;
       }
+    },
+
+    _getNotes: function() {
+      if (_.isString(this.settings.defaultNote) && this.settings.defaultNote.length > 0) {
+        return this.settings.defaultNote;
+      }
+      // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
+      //       and deployed to production, remove ", this._renderContext()".
+      return this.I18n.t('form.notes_message', this._renderContext());
     },
 
     _getRequest: function(resource) {
