@@ -24,7 +24,9 @@
     "start_timer":      "Start Timer",
     "stop_timer":       "Stop Timer",
     "success":          "Hours sucessfuly logged!",
-    "task":             "Task"
+    "task":             "Task",
+    "harvest_email":    "Harvest Email",
+    "harvest_password": "Harvest Password"
   },
 
   "global": {

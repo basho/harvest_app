@@ -1,0 +1,7 @@
+<form class="login">
+  <label>{{t "form.harvest_email"}}</label>
+  <input type="text" name="email" required="required" data-field-title="{{t "form.harvest_email"}}" />
+  <label>{{t "form.harvest_password"}}</label>
+  <input type="password" name="password" required="required" data-field-title="{{t "form.harvest_password"}}" />
+  <p><button type="submit" class="btn btn-inverse">{{t "global.submit"}}</button></p>
+</form>

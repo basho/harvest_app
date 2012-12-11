@@ -1,7 +1,7 @@
 (function() {
 
-  var DAILY_ADD_URI =  "%@/daily/add.xml",
-      DAILY_URI     =  "%@/daily.json",
+  var DAILY_ADD_URI = "%@/daily/add.xml",
+      DAILY_URI     = "%@/daily.json",
       HARVEST_URI   = "%@/daily",
       TIMER_URI     = "%@/daily/timer/%@.json";
 
@@ -32,6 +32,8 @@
       'click .to_harvest .view_timesheet':    'changeHref',
       'keypress .hours input[name=hours]':    'maskUserInput',
 
+      'submit form.login':                    'submitLogin',
+
       'app.activated': 'appActivated',
 
       /** Ajax Callbocks **/
@@ -50,7 +52,26 @@
       var firstLoad = data && data.firstLoad;
       if ( !firstLoad ) { return; }
 
+      this.setupAuth();
+
       this.firstRequest();
+    },
+
+    setupAuth: function() {
+      var self = this;
+      _.bind(this._switchToAuth);
+      this.switchTo = _.wrap(this.switchTo, this._switchToAuth);
+    },
+
+    _switchToAuth: function(swTo, templateName, data) {
+      if (!this._authenticate()) {
+        this.store('returnTo', {
+          templateName : templateName,
+          data         : data
+        });
+        templateName = 'login';
+      }
+      swTo.call(this, templateName, data || {});
     },
 
     changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(HARVEST_URI, this.settings.url)); },
@@ -274,6 +295,37 @@
     _xmlTemplateAdd: function(options) {
       return this.renderAndEscapeXML('add.xml', options);
     },
+
+    _authenticate: function() {
+      /*if (this.store('')) {
+
+      }*/
+      return false;
+    },
+
+    //_switchTo: this.switchTo,
+
+    /*switchTo: function(templateName, data) {
+      if (!this._authenticate()) {
+        this.store('returnTo', {
+          templateName : templateName,
+          data         : data
+        });
+        templateName = 'login';
+      }
+      this._switchTo(templateName, data || {});
+    },*/
+
+    /*switchTo: _.wrap(this._switchTo, function(swTo, templateName, data) {
+      if (!this._authenticate()) {
+        this.store('returnTo', {
+          templateName : templateName,
+          data         : data
+        });
+        templateName = 'login';
+      }
+      swTo(templateName, data || {});
+    }),*/
 
     /** Helpers **/
     disableSubmit: function(form) {
