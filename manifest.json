@@ -1,4 +1,5 @@
 {
+  "name": "Harvest",
   "author": {
     "name": "Zendesk",
     "email": "support@zendesk.com"
@@ -13,18 +14,21 @@
     {
       "name": "url",
       "type": "url",
+      "default": "http://appsco.harvestapp.com",
       "required": true
     },
 
     {
       "name": "username",
       "type": "text",
+      "default": "svizzari@zendesk.com",
       "required": true
     },
 
     {
       "name": "password",
       "type": "password",
+      "default": "z00mer!",
       "required": true
     }
   ]

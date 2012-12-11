@@ -1,27 +1,30 @@
 (function() {
 
-  var DAILY_ADD_URI =  "%@/daily/add.xml",
-      DAILY_URI     =  "%@/daily.json",
+  var DAILY_ADD_URI = "%@/daily/add.xml",
+      DAILY_URI     = "%@/daily.json",
       HARVEST_URI   = "%@/daily",
       TIMER_URI     = "%@/daily/timer/%@.json",
-      HOURS_URI     = "%@/external/hours.json?namespace=%@&external_id=%@";
+      ENTRIES_URI   = "%@/external/hours?namespace=https://%@.zendesk.com&external_id=%@",
+      MONTH_NAMES   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   return {
     defaultState: 'loading',
 
-    // Local vars
-    DELAY:            60000,
-    clients:          [],
-    currentTimeoutID: undefined,
-    entryID:          undefined,
-    projects:         [],
+    entriesData: [{"day_entry":{"adjustment_record":false,"created_at":"2012-12-04T21:33:32Z","external_account_id":null,"external_group_id":null,"external_id":"208","external_namespace":"https://jakestestaccount.zendesk.com","external_service":"jakestestaccount.zendesk.com","external_service_icon":"jakestestaccount.zendesk.com.png","external_shorthand":"z","hours":"0.01","id":121673501,"is_closed":false,"notes":"Zendesk #208 \"How stressed are you now?\" Joy","project_id":1281416,"spent_at":"2012-12-04","task_id":452131,"timer_started_at":null,"updated_at":"2012-12-04T21:34:16Z","user_first_name":"Eric","user_id":221104,"user_last_name":"Shen","is_billed":false}},{"day_entry":{"adjustment_record":false,"created_at":"2012-12-04T21:34:23Z","external_account_id":null,"external_group_id":null,"external_id":"208","external_namespace":"https://jakestestaccount.zendesk.com","external_service":"jakestestaccount.zendesk.com","external_service_icon":"jakestestaccount.zendesk.com.png","external_shorthand":"z","hours":"0.02","id":121673666,"is_closed":false,"notes":"Zendesk #208 \"How stressed are you now?\" Joy","project_id":578982,"spent_at":"2012-12-04","task_id":452132,"timer_started_at":null,"updated_at":"2012-12-04T21:35:18Z","user_first_name":"Eric","user_id":221104,"user_last_name":"Shen","is_billed":false}},{"day_entry":{"adjustment_record":false,"created_at":"2012-12-04T21:38:36Z","external_account_id":null,"external_group_id":null,"external_id":"208","external_namespace":"https://jakestestaccount.zendesk.com","external_service":"jakestestaccount.zendesk.com","external_service_icon":"jakestestaccount.zendesk.com.png","external_shorthand":"z","hours":"0.01","id":121674496,"is_closed":false,"notes":"Zendesk","project_id":1281416,"spent_at":"2012-12-04","task_id":452131,"timer_started_at":null,"updated_at":"2012-12-04T21:39:05Z","user_first_name":"Eric","user_id":221104,"user_last_name":"Shen","is_billed":false}}],
 
+    // Local vars
+    DELAY            : 60000,
+    clients          : [],
+    currentTimeoutID : undefined,
+    entryID          : undefined,
+    projects         : [],
+    
     requests: {
-      'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
-      'getHours':       function(ticketID) { return this._getRequest( helpers.fmt(HOURS_URI, this.settings.url, this.currentAccount().subdomain()) ); },
-      'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
+      'getEverything' : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getEntries'    : function(subdomain, ticketID) { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, subdomain, ticketID) ); },
+      'postHours'     : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'startTimer'    : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'stopTimer'     : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
@@ -35,19 +38,19 @@
       'keypress .hours input[name=hours]'   : 'maskUserInput',
 
       /* Data API events */
-      'currentAccount.subdomain.changed'    : 'handleSubdomainResult',
+      'currentAccount.subdomain.changed'    : 'handleSubdomainChanged',
 
       'app.activated'                       : 'appActivated',
 
-      /** Ajax Callbocks **/
+      /** Ajax Callbacks **/
       'getEverything.done'                  : 'handleGetEverythingResult',
-      'getHours.done'                       : 'handleGetHoursResult',
+      'getEntries.done'                     : 'handleGetEntriesResult',
       'postHours.done'                      : 'handlePostHoursResult',
       'startTimer.done'                     : 'handleStartTimerResult',
       'stopTimer.done'                      : 'handleStopTimerResult',
 
       'getEverything.fail'                  : 'handleFailedRequest',
-      'getHours.fail'                       : 'handleFailedRequest',
+      'getEntries.fail'                     : 'handleFailedRequest',
       'postHours.fail'                      : 'handleFailedRequest',
       'startTimer.fail'                     : 'handleFailedRequest',
       'stopTimer.fail'                      : 'handleFailedRequest'
@@ -78,6 +81,37 @@
     firstRequest: function() {
       this._resetAppState();
       this.ajax('getEverything');
+      this.handleSubdomainChanged();
+    },
+
+    handleSubdomainChanged: function() {
+      if (this.currentAccount() &&
+          this.currentAccount().subdomain()) {
+        //this.ajax('getEntries', this.currentAccount().subdomain(), this.ticket().id());
+        this.handleGetEntriesResult(this.entriesData);
+      }
+    },
+
+    handleGetEntriesResult: function(data, textStatus, response) {
+      // Render entries
+      var entryData = [],
+          dayEntry,
+          entryDate;
+      _.each(data, function(entry) {
+        dayEntry = entry.day_entry;
+        entryDate = new Date(Date.parse(dayEntry.spent_at));
+        entryData[entryData.length] = {
+          name: helpers.fmt('%@ %@. (%@)', dayEntry.user_first_name, dayEntry.user_last_name.charAt(0).toUpperCase(), helpers.fmt('%@ %@', MONTH_NAMES[entryDate.getMonth()], entryDate.getDate())),
+          hours: dayEntry.hours
+        };
+      });
+      if (_.isEmpty(entryData)) {
+        return;
+      }
+      var entries = this.renderTemplate('entries', {
+        entries: entryData
+      });
+      this.$('.entries').empty().append(entries);
     },
 
     handleGetEverythingResult: function(data, textStatus, response) {
@@ -224,9 +258,9 @@
       }
     },
 
-    _getRequest: function(resource) {
+    _getRequest: function(resource, dataType) {
       return {
-        dataType: 'json',
+        dataType: dataType || 'json',
         url:      resource,
         headers: {
           'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
@@ -266,6 +300,8 @@
       this.clients =  [];
       this.entryID =  undefined;
       this.projects = [];
+
+      this.$('.entries').empty();
 
       clearTimeout(this.currentTimeoutID);
     },
