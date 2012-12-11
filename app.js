@@ -94,13 +94,10 @@
 
     handleGetEntriesResult: function(data, textStatus, response) {
       // Render entries
-      var entryData = [],
-          dayEntry,
-          entryDate;
-      _.each(data, function(entry) {
-        dayEntry = entry.day_entry;
-        entryDate = new Date(Date.parse(dayEntry.spent_at));
-        entryData[entryData.length] = {
+      var entryData = _.map(data, function(entry) {
+        var dayEntry = entry.day_entry,
+            entryDate = new Date(Date.parse(dayEntry.spent_at));
+        return {
           name: helpers.fmt('%@ %@. (%@)', dayEntry.user_first_name, dayEntry.user_last_name.charAt(0).toUpperCase(), helpers.fmt('%@ %@', MONTH_NAMES[entryDate.getMonth()], entryDate.getDate())),
           hours: dayEntry.hours
         };
