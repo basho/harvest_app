@@ -2,6 +2,14 @@ ul {
   margin-left: 0;
 }
 
+label {
+  margin-bottom: 5px;
+}
+
+input {
+  margin-bottom: 9px;
+}
+
 select {
   border: 1px solid #CCCCCC;
   -webkit-border-radius: 3px;
