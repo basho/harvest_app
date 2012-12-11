@@ -26,6 +26,12 @@
       "name": "password",
       "type": "password",
       "required": true
+    },
+
+    {
+      "name": "defaultNote",
+      "type": "multiline",
+      "required": false
     }
   ]
 }
