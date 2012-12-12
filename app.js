@@ -19,7 +19,7 @@
     
     requests: {
       'getEverything' : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
-      'getEntries'    : function(subdomain, ticketID) { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, subdomain, ticketID) ); },
+      'getEntries'    : function(ticketID) { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), ticketID) ); },
       'postHours'     : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer'    : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'stopTimer'     : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
