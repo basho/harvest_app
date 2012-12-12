@@ -261,7 +261,7 @@
 
     _getRequest: function(resource) {
       return {
-        dataType: dataType || 'json',
+        dataType: 'json',
         url:      resource,
         headers: {
           'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
