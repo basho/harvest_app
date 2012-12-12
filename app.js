@@ -4,13 +4,11 @@
       DAILY_URI     = "%@/daily.json",
       HARVEST_URI   = "%@/daily",
       TIMER_URI     = "%@/daily/timer/%@.json",
-      ENTRIES_URI   = "%@/external/hours?namespace=https://%@.zendesk.com&external_id=%@",
+      ENTRIES_URI   = "%@/external/hours.json?namespace=https://%@.zendesk.com&external_id=%@",
       MONTH_NAMES   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   return {
     defaultState: 'loading',
-
-    entriesData: [{"day_entry":{"adjustment_record":false,"created_at":"2012-12-04T21:33:32Z","external_account_id":null,"external_group_id":null,"external_id":"208","external_namespace":"https://jakestestaccount.zendesk.com","external_service":"jakestestaccount.zendesk.com","external_service_icon":"jakestestaccount.zendesk.com.png","external_shorthand":"z","hours":"0.01","id":121673501,"is_closed":false,"notes":"Zendesk #208 \"How stressed are you now?\" Joy","project_id":1281416,"spent_at":"2012-12-04","task_id":452131,"timer_started_at":null,"updated_at":"2012-12-04T21:34:16Z","user_first_name":"Eric","user_id":221104,"user_last_name":"Shen","is_billed":false}},{"day_entry":{"adjustment_record":false,"created_at":"2012-12-04T21:34:23Z","external_account_id":null,"external_group_id":null,"external_id":"208","external_namespace":"https://jakestestaccount.zendesk.com","external_service":"jakestestaccount.zendesk.com","external_service_icon":"jakestestaccount.zendesk.com.png","external_shorthand":"z","hours":"0.02","id":121673666,"is_closed":false,"notes":"Zendesk #208 \"How stressed are you now?\" Joy","project_id":578982,"spent_at":"2012-12-04","task_id":452132,"timer_started_at":null,"updated_at":"2012-12-04T21:35:18Z","user_first_name":"Eric","user_id":221104,"user_last_name":"Shen","is_billed":false}},{"day_entry":{"adjustment_record":false,"created_at":"2012-12-04T21:38:36Z","external_account_id":null,"external_group_id":null,"external_id":"208","external_namespace":"https://jakestestaccount.zendesk.com","external_service":"jakestestaccount.zendesk.com","external_service_icon":"jakestestaccount.zendesk.com.png","external_shorthand":"z","hours":"0.01","id":121674496,"is_closed":false,"notes":"Zendesk","project_id":1281416,"spent_at":"2012-12-04","task_id":452131,"timer_started_at":null,"updated_at":"2012-12-04T21:39:05Z","user_first_name":"Eric","user_id":221104,"user_last_name":"Shen","is_billed":false}}],
 
     // Local vars
     DELAY            : 60000,
@@ -86,9 +84,8 @@
 
     handleSubdomainChanged: function() {
       if (this.currentAccount() &&
-          this.currentAccount().subdomain()) {
-        //this.ajax('getEntries', this.currentAccount().subdomain(), this.ticket().id());
-        this.handleGetEntriesResult(this.entriesData);
+          _.isString(this.currentAccount().subdomain())) {
+        this.ajax('getEntries', this.ticket().id());
       }
     },
 
