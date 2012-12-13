@@ -342,7 +342,7 @@
 
     showSuccess: function(msg) {
       this.switchTo('success', { message: msg });
-    },
+    }
 
   };
 
