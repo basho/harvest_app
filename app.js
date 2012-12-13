@@ -1,49 +1,58 @@
 (function() {
 
-  var DAILY_ADD_URI =  "%@/daily/add.xml",
-      DAILY_URI     =  "%@/daily.json",
+  var DAILY_ADD_URI = "%@/daily/add.json",
+      DAILY_URI     = "%@/daily.json",
       HARVEST_URI   = "%@/daily",
-      TIMER_URI     = "%@/daily/timer/%@.json";
+      TIMER_URI     = "%@/daily/timer/%@.json",
+      ENTRIES_URI   = "%@/external/hours.json?namespace=https://%@.zendesk.com&external_id=%@",
+      MONTH_NAMES   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   return {
     defaultState: 'loading',
 
     // Local vars
-    DELAY:            60000,
-    clients:          [],
-    currentTimeoutID: undefined,
-    entryID:          undefined,
-    projects:         [],
-
+    DELAY            : 60000,
+    MAX_ENTRIES      : 5,
+    clients          : [],
+    currentTimeoutID : undefined,
+    entryID          : undefined,
+    projects         : [],
+    
     requests: {
-      'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
-      'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
+      'getEverything' : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getEntries'    : function(ticketID) { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), ticketID) ); },
+      'postHours'     : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'startTimer'    : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'stopTimer'     : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
-      'change .submit_form .projects':        'changeProject',
-      'click .entry .submit':                 'stopTimer',
-      'click .submit_form .add_duration':     'toggleHoursTimer',
-      'click .submit_form .cancel_duration':  'toggleHoursTimer',
-      'click .message .back':                 'firstRequest',
-      'click .submit_form .submit':           'submitForm',
-      'click .to_harvest .view_timesheet':    'changeHref',
-      'keypress .hours input[name=hours]':    'maskUserInput',
+      'change .submit_form .projects'       : 'changeProject',
+      'click .entry .submit'                : 'stopTimer',
+      'click .submit_form .add_duration'    : 'toggleHoursTimer',
+      'click .submit_form .cancel_duration' : 'toggleHoursTimer',
+      'click .message .back'                : 'firstRequest',
+      'click .submit_form .submit'          : 'submitForm',
+      'click .to_harvest .view_timesheet'   : 'changeHref',
+      'keypress .hours input[name=hours]'   : 'maskUserInput',
 
-      'app.activated': 'appActivated',
+      /* Data API events */
+      'currentAccount.subdomain.changed'    : 'handleSubdomainChanged',
 
-      /** Ajax Callbocks **/
-      'getEverything.done':  'handleGetEverythingResult',
-      'postHours.done':      'handlePostHoursResult',
-      'startTimer.done':     'handleStartTimerResult',
-      'stopTimer.done':      'handleStopTimerResult',
+      'app.activated'                       : 'appActivated',
 
-      'getEverything.fail':     'handleFailedRequest',
-      'postHours.fail':         'handleFailedRequest',
-      'startTimer.fail':        'handleFailedRequest',
-      'stopTimer.fail':         'handleFailedRequest'
+      /** Ajax Callbacks **/
+      'getEverything.done'                  : 'handleGetEverythingResult',
+      'getEntries.done'                     : 'handleGetEntriesResult',
+      'postHours.done'                      : 'handlePostHoursResult',
+      'startTimer.done'                     : 'handleStartTimerResult',
+      'stopTimer.done'                      : 'handleStopTimerResult',
+
+      'getEverything.fail'                  : 'handleFailedRequest',
+      'getEntries.fail'                     : 'handleFailedRequest',
+      'postHours.fail'                      : 'handleFailedRequest',
+      'startTimer.fail'                     : 'handleFailedRequest',
+      'stopTimer.fail'                      : 'handleFailedRequest'
     },
 
     appActivated: function(data) {
@@ -71,6 +80,33 @@
     firstRequest: function() {
       this._resetAppState();
       this.ajax('getEverything');
+      this.handleSubdomainChanged();
+    },
+
+    handleSubdomainChanged: function() {
+      if (this.currentAccount() &&
+          _.isString(this.currentAccount().subdomain())) {
+        this.ajax('getEntries', this.ticket().id());
+      }
+    },
+
+    handleGetEntriesResult: function(data, textStatus, response) {
+      // Render entries
+      var entryData = _.map(_.toArray(data).reverse().slice(0, this.MAX_ENTRIES), function(entry) {
+        var dayEntry = entry.day_entry,
+            entryDate = new Date(Date.parse(dayEntry.spent_at));
+        return {
+          name: helpers.fmt('%@ %@. (%@)', dayEntry.user_first_name, dayEntry.user_last_name.charAt(0).toUpperCase(), helpers.fmt('%@ %@', MONTH_NAMES[entryDate.getMonth()], entryDate.getDate())),
+          hours: dayEntry.hours
+        };
+      });
+      if (_.isEmpty(entryData)) {
+        return;
+      }
+      var entries = this.renderTemplate('entries', {
+        entries: entryData
+      });
+      this.$('.entries').empty().append(entries);
     },
 
     handleGetEverythingResult: function(data, textStatus, response) {
@@ -95,23 +131,19 @@
     },
 
     handlePostHoursResult: function(data, textStatus, response) {
-      var dayEntry = this.$(data).find('day_entry');
-
-      if ( this._throwException(dayEntry.length, response) ) { return; }
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
 
     handleStartTimerResult: function(data, textStatus, response) {
-      var fields = [], dayEntry = this.$(data).find('day_entry');
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return ; }
 
-      if ( this._throwException(dayEntry.length, response) ) { return ; }
-
-      this.renderTimer(dayEntry);
+      this.renderTimer(data);
     },
 
     handleStopTimerResult: function(data, textStatus, response) {
-      if ( this._throwException(data.hours != null, response) ) { return; }
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
@@ -126,15 +158,14 @@
       }
     },
 
-    // From handleGetEverythingResult: json. From handleStartTimerResult: XML. Meaning: give any kind of data, it'll render.
     renderTimer: function(entry) {
       var fields = [], hours;
 
-      this.entryID = this._getField(entry, 'id');
-      hours = this._floatToHours(this._getField(entry, 'hours'));
+      this.entryID = entry.id;
+      hours = this._floatToHours(entry.hours);
 
       ['client', 'project', 'task', 'notes'].forEach(function(item) {
-        fields.pushObject({ label: this.I18n.t(helpers.fmt("form.%@", item)), value: this._getField(entry, item) });
+        fields.pushObject({ label: this.I18n.t(helpers.fmt("form.%@", item)), value: entry[item] });
       }, this);
 
       this.switchTo('entry', { fields: fields, hours: hours });
@@ -172,7 +203,18 @@
       }
 
       this.disableSubmit(form);
-      data = this._xmlTemplateAdd({ hours: hours.val(), notes: notes.val(), project_id: project.val(), spent_at: Date('dd/mm/yyyy'), task_id: task.val() });
+      
+      data = {
+        project_id         : project.val(),
+        task_id            : task.val(),
+        notes              : notes.val(),
+        hours              : hours.val(),
+        external_ref : {
+          namespace : helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain()),
+          id        : this.ticket().id()
+        }
+      };
+
       if ( divHours.is(':visible') ) {
         this.ajax('postHours', data);
       } else {
@@ -203,16 +245,6 @@
       if ( hour < 10 ) { hour = helpers.fmt("0%@", hour); }
       if ( minutes < 10 ) { minutes = helpers.fmt("0%@", minutes); }
       return (helpers.fmt("%@:%@", hour, minutes));
-    },
-
-    _getField: function(obj, field) {
-      if ( typeof(obj.children) === 'function' ) { // XML
-        return obj.children(field).text();
-      } else if ( typeof(obj) === 'object' ) { // json
-        return obj[field];
-      } else {
-        return undefined;
-      }
     },
 
     _getNotes: function() {
@@ -251,7 +283,7 @@
 
     _postRequest: function(data, resource) {
       return {
-        dataType:     'xml',
+        dataType:     'json',
         data:         data,
         processData:  false,
         type:         'POST',
@@ -267,6 +299,8 @@
       this.entryID =  undefined;
       this.projects = [];
 
+      this.$('.entries').empty();
+
       clearTimeout(this.currentTimeoutID);
     },
 
@@ -276,10 +310,6 @@
         return true;
       }
       return false;
-    },
-
-    _xmlTemplateAdd: function(options) {
-      return this.renderAndEscapeXML('add.xml', options);
     },
 
     /** Helpers **/
@@ -312,13 +342,6 @@
 
     showSuccess: function(msg) {
       this.switchTo('success', { message: msg });
-    },
-
-    renderAndEscapeXML: function(templateName, data) {
-      Object.keys(data).forEach(function(key) {
-        data[key] = helpers.safeString( data[key] );
-      });
-      return encodeURI( this.renderTemplate(templateName, data) );
     }
 
   };

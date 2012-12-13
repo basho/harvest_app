@@ -1,0 +1,6 @@
+<hr/>
+<ul class="hours_logged">
+  {{#entries}}
+    <li><span>{{name}}</span><strong>{{hours}}</strong></li>
+  {{/entries}}
+</ul>

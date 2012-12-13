@@ -72,6 +72,14 @@ header .logo {
   }
 }
 
+.hours_logged {
+  li {
+    strong {
+      float: right;
+    }
+  }
+}
+
 .to_harvest {
   a {
     color: gray;
