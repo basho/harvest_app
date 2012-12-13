@@ -146,7 +146,7 @@
       }
 
       // Validation
-      if ( this._throwException(data.projects, response) ) { return; }
+      if ( this._throwException(_.has(data, 'projects'), response) ) { return; }
       if ( projects.length === 0 ) { this.showError(this.I18n.t('form.no_projects')); return; }
 
       // If timer for this ticket is running, render it, otherwise, show submit form
