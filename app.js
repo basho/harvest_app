@@ -1,6 +1,6 @@
 (function() {
 
-  var DAILY_ADD_URI = "%@/daily/add.xml",
+  var DAILY_ADD_URI = "%@/daily/add.json",
       DAILY_URI     = "%@/daily.json",
       HARVEST_URI   = "%@/daily",
       TIMER_URI     = "%@/daily/timer/%@.json",
@@ -12,6 +12,7 @@
 
     // Local vars
     DELAY            : 60000,
+    MAX_ENTRIES      : 5,
     clients          : [],
     currentTimeoutID : undefined,
     entryID          : undefined,
@@ -91,7 +92,7 @@
 
     handleGetEntriesResult: function(data, textStatus, response) {
       // Render entries
-      var entryData = _.map(data, function(entry) {
+      var entryData = _.map(_.toArray(data).reverse().slice(0, this.MAX_ENTRIES), function(entry) {
         var dayEntry = entry.day_entry,
             entryDate = new Date(Date.parse(dayEntry.spent_at));
         return {
@@ -130,23 +131,19 @@
     },
 
     handlePostHoursResult: function(data, textStatus, response) {
-      var dayEntry = this.$(data).find('day_entry');
-
-      if ( this._throwException(dayEntry.length, response) ) { return; }
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
 
     handleStartTimerResult: function(data, textStatus, response) {
-      var fields = [], dayEntry = this.$(data).find('day_entry');
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return ; }
 
-      if ( this._throwException(dayEntry.length, response) ) { return ; }
-
-      this.renderTimer(dayEntry);
+      this.renderTimer(data);
     },
 
     handleStopTimerResult: function(data, textStatus, response) {
-      if ( this._throwException(data.hours != null, response) ) { return; }
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
@@ -161,15 +158,14 @@
       }
     },
 
-    // From handleGetEverythingResult: json. From handleStartTimerResult: XML. Meaning: give any kind of data, it'll render.
     renderTimer: function(entry) {
       var fields = [], hours;
 
-      this.entryID = this._getField(entry, 'id');
-      hours = this._floatToHours(this._getField(entry, 'hours'));
+      this.entryID = entry.id;
+      hours = this._floatToHours(entry.hours);
 
       ['client', 'project', 'task', 'notes'].forEach(function(item) {
-        fields.pushObject({ label: this.I18n.t(helpers.fmt("form.%@", item)), value: this._getField(entry, item) });
+        fields.pushObject({ label: this.I18n.t(helpers.fmt("form.%@", item)), value: entry[item] });
       }, this);
 
       this.switchTo('entry', { fields: fields, hours: hours });
@@ -207,7 +203,18 @@
       }
 
       this.disableSubmit(form);
-      data = this._xmlTemplateAdd({ hours: hours.val(), notes: notes.val(), project_id: project.val(), spent_at: Date('dd/mm/yyyy'), task_id: task.val() });
+      
+      data = {
+        project_id         : project.val(),
+        task_id            : task.val(),
+        notes              : notes.val(),
+        hours              : hours.val(),
+        external_ref : {
+          namespace : helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain()),
+          id        : this.ticket().id()
+        }
+      };
+
       if ( divHours.is(':visible') ) {
         this.ajax('postHours', data);
       } else {
@@ -238,16 +245,6 @@
       if ( hour < 10 ) { hour = helpers.fmt("0%@", hour); }
       if ( minutes < 10 ) { minutes = helpers.fmt("0%@", minutes); }
       return (helpers.fmt("%@:%@", hour, minutes));
-    },
-
-    _getField: function(obj, field) {
-      if ( typeof(obj.children) === 'function' ) { // XML
-        return obj.children(field).text();
-      } else if ( typeof(obj) === 'object' ) { // json
-        return obj[field];
-      } else {
-        return undefined;
-      }
     },
 
     _getNotes: function() {
@@ -286,7 +283,7 @@
 
     _postRequest: function(data, resource) {
       return {
-        dataType:     'xml',
+        dataType:     'json',
         data:         data,
         processData:  false,
         type:         'POST',
@@ -313,10 +310,6 @@
         return true;
       }
       return false;
-    },
-
-    _xmlTemplateAdd: function(options) {
-      return this.renderAndEscapeXML('add.xml', options);
     },
 
     /** Helpers **/
@@ -350,13 +343,6 @@
     showSuccess: function(msg) {
       this.switchTo('success', { message: msg });
     },
-
-    renderAndEscapeXML: function(templateName, data) {
-      Object.keys(data).forEach(function(key) {
-        data[key] = helpers.safeString( data[key] );
-      });
-      return encodeURI( this.renderTemplate(templateName, data) );
-    }
 
   };
 

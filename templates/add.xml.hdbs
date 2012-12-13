@@ -1,7 +1,0 @@
-<request>
-  <notes><![CDATA[{{notes}}]]></notes>
-  <hours>{{hours}}</hours>
-  <project_id type="integer">{{project_id}}</project_id>
-  <task_id type="integer">{{task_id}}</task_id>
-  <spent_at type="date">{{spent_at}}</spent_at>
-</request>
