@@ -1,22 +1,27 @@
 (function() {
 
-  var DAILY_ADD_URI = "%@/daily/add.xml",
+
+  var DAILY_ADD_URI = "%@/daily/add.json",
       DAILY_URI     = "%@/daily.json",
       HARVEST_URI   = "%@/daily",
-      TIMER_URI     = "%@/daily/timer/%@.json";
+      TIMER_URI     = "%@/daily/timer/%@.json",
+      ENTRIES_URI   = "%@/external/hours.json?namespace=https://%@.zendesk.com&external_id=%@",
+      MONTH_NAMES   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   return {
     defaultState: 'loading',
 
     // Local vars
-    DELAY:            60000,
-    clients:          [],
-    currentTimeoutID: undefined,
-    entryID:          undefined,
-    projects:         [],
-
+    DELAY            : 60000,
+    MAX_ENTRIES      : 5,
+    clients          : [],
+    currentTimeoutID : undefined,
+    entryID          : undefined,
+    projects         : [],
+    
     requests: {
       'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getEntries'    : function() { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), this.ticket().id()) ); },
       'getAuth':        function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
       'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
@@ -35,10 +40,14 @@
       'click .user_info .logout'            : 'logout',
       'keypress .hours input[name=hours]'   : 'maskUserInput',
 
+      /* Data API events */
+      'currentAccount.subdomain.changed'    : 'handleSubdomainChanged',
+
       'app.activated'                       : 'appActivated',
 
       /** Ajax Callbocks **/
       'getEverything.done'                  : 'handleGetEverythingResult',
+      'getEntries.done'                     : 'handleGetEntriesResult',
       'getAuth.done'                        : 'handleGetAuthResult',
       'postHours.done'                      : 'handlePostHoursResult',
       'startTimer.done'                     : 'handleStartTimerResult',
@@ -46,6 +55,7 @@
 
       'getEverything.fail'                  : 'handleFailedRequest',
       'getAuth.fail'                        : 'handleAuthFailedRequest',
+      'getEntries.fail'                     : 'handleFailedRequest',
       'postHours.fail'                      : 'handleFailedRequest',
       'startTimer.fail'                     : 'handleFailedRequest',
       'stopTimer.fail'                      : 'handleFailedRequest'
@@ -79,9 +89,37 @@
     firstRequest: function() {
       this._resetAppState();
       this.ajax('getEverything');
+      this.handleSubdomainChanged();
+    },
+
+    handleSubdomainChanged: function() {
+      if (this.currentAccount() &&
+          _.isString(this.currentAccount().subdomain())) {
+        this.ajax('getEntries');
+      }
+    },
+
+    handleGetEntriesResult: function(data, textStatus, response) {
+      // Render entries
+      var entryData = _.map(_.toArray(data).reverse().slice(0, this.MAX_ENTRIES), function(entry) {
+        var dayEntry = entry.day_entry,
+            entryDate = new Date(Date.parse(dayEntry.spent_at));
+        return {
+          name: helpers.fmt('%@ %@. (%@)', dayEntry.user_first_name, dayEntry.user_last_name.charAt(0).toUpperCase(), helpers.fmt('%@ %@', MONTH_NAMES[entryDate.getMonth()], entryDate.getDate())),
+          hours: dayEntry.hours
+        };
+      });
+      if (_.isEmpty(entryData)) {
+        return;
+      }
+      var entries = this.renderTemplate('entries', {
+        entries: entryData
+      });
+      this.$('.entries').empty().append(entries);
     },
 
     handleGetAuthResult: function(data, textStatus, response) {
+      this.ajax('getEntries');
       this.handleGetEverythingResult(data, textStatus. response);
     },
 
@@ -119,31 +157,26 @@
       }
 
       this._populateClientsAndProjects(projects);
-      // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
-      //       and deployed to production, remove ", this._renderContext()".
-      notes = this.I18n.t('form.notes_message', this._renderContext());
+
       this.showLoginInfo(true);
-      this.switchTo('submitForm', { clients: this.clients, notes: notes });
+
+      this.switchTo('submitForm', { clients: this.clients, notes: this._getNotes() });
     },
 
     handlePostHoursResult: function(data, textStatus, response) {
-      var dayEntry = this.$(data).find('day_entry');
-
-      if ( this._throwException(dayEntry.length, response) ) { return; }
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
 
     handleStartTimerResult: function(data, textStatus, response) {
-      var fields = [], dayEntry = this.$(data).find('day_entry');
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return ; }
 
-      if ( this._throwException(dayEntry.length, response) ) { return ; }
-
-      this.renderTimer(dayEntry);
+      this.renderTimer(data);
     },
 
     handleStopTimerResult: function(data, textStatus, response) {
-      if ( this._throwException(data.hours != null, response) ) { return; }
+      if ( this._throwException(_.has(data, 'hours'), response) ) { return; }
 
       this.showSuccess(this.I18n.t('form.success'));
     },
@@ -158,15 +191,14 @@
       }
     },
 
-    // From handleGetEverythingResult: json. From handleStartTimerResult: XML. Meaning: give any kind of data, it'll render.
     renderTimer: function(entry) {
       var fields = [], hours;
 
-      this.entryID = this._getField(entry, 'id');
-      hours = this._floatToHours(this._getField(entry, 'hours'));
+      this.entryID = entry.id;
+      hours = this._floatToHours(entry.hours);
 
       ['client', 'project', 'task', 'notes'].forEach(function(item) {
-        fields.pushObject({ label: this.I18n.t(helpers.fmt("form.%@", item)), value: this._getField(entry, item) });
+        fields.pushObject({ label: this.I18n.t(helpers.fmt("form.%@", item)), value: entry[item] });
       }, this);
 
       this.switchTo('entry', { fields: fields, hours: hours });
@@ -204,7 +236,18 @@
       }
 
       this.disableSubmit(form);
-      data = this._xmlTemplateAdd({ hours: hours.val(), notes: notes.val(), project_id: project.val(), spent_at: Date('dd/mm/yyyy'), task_id: task.val() });
+      
+      data = {
+        project_id         : project.val(),
+        task_id            : task.val(),
+        notes              : notes.val(),
+        hours              : hours.val(),
+        external_ref : {
+          namespace : helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain()),
+          id        : this.ticket().id()
+        }
+      };
+
       if ( divHours.is(':visible') ) {
         this.ajax('postHours', data);
       } else {
@@ -228,6 +271,7 @@
     },
 
     logout: function(evt) {
+      this._resetAppState();
       this._resetAuthState();
       this.showLoginInfo(false);
       this.switchTo('login');
@@ -259,14 +303,13 @@
       return (helpers.fmt("%@:%@", hour, minutes));
     },
 
-    _getField: function(obj, field) {
-      if ( typeof(obj.children) === 'function' ) { // XML
-        return obj.children(field).text();
-      } else if ( typeof(obj) === 'object' ) { // json
-        return obj[field];
-      } else {
-        return undefined;
+    _getNotes: function() {
+      if (_.isString(this.settings.defaultNote) && this.settings.defaultNote.length > 0) {
+        return this.settings.defaultNote;
       }
+      // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
+      //       and deployed to production, remove ", this._renderContext()".
+      return this.I18n.t('form.notes_message', this._renderContext());
     },
 
     _getRequest: function(resource) {
@@ -296,7 +339,7 @@
 
     _postRequest: function(data, resource) {
       return {
-        dataType:     'xml',
+        dataType:     'json',
         data:         data,
         processData:  false,
         type:         'POST',
@@ -311,6 +354,8 @@
       this.clients =  [];
       this.entryID =  undefined;
       this.projects = [];
+
+      this.$('.entries').empty();
 
       clearTimeout(this.currentTimeoutID);
     },
@@ -328,10 +373,6 @@
         return true;
       }
       return false;
-    },
-
-    _xmlTemplateAdd: function(options) {
-      return this.renderAndEscapeXML('add.xml', options);
     },
 
     _authenticated: function() {
@@ -383,13 +424,6 @@
         $userInfo.hide();
         $toHarvest.hide();
       }
-    },
-
-    renderAndEscapeXML: function(templateName, data) {
-      Object.keys(data).forEach(function(key) {
-        data[key] = helpers.safeString( data[key] );
-      });
-      return encodeURI( this.renderTemplate(templateName, data) );
     },
 
     invalidFields: function($form) {
