@@ -13,21 +13,18 @@
     {
       "name": "url",
       "type": "url",
-      "default": "https://appsco.harvestapp.com",
       "required": true
     },
 
     {
-      "name": "username",
+      "name": "email",
       "type": "text",
-      "default": "svizzari@zendesk.com",
       "required": true
     },
 
     {
       "name": "password",
       "type": "password",
-      "default": "z00mer!",
       "required": true
     }
   ]

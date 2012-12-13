@@ -17,61 +17,48 @@
 
     requests: {
       'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getAuth':        function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
       'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
-      'change .submit_form .projects':        'changeProject',
-      'click .entry .submit':                 'stopTimer',
-      'click .submit_form .add_duration':     'toggleHoursTimer',
-      'click .submit_form .cancel_duration':  'toggleHoursTimer',
-      'click .message .back':                 'firstRequest',
-      'click .submit_form .submit':           'submitForm',
-      'click .to_harvest .view_timesheet':    'changeHref',
-      'keypress .hours input[name=hours]':    'maskUserInput',
+      'change .submit_form .projects'       : 'changeProject',
+      'click .entry .submit'                : 'stopTimer',
+      'click .submit_form .add_duration'    : 'toggleHoursTimer',
+      'click .submit_form .cancel_duration' : 'toggleHoursTimer',
+      'click .message .back'                : 'firstRequest',
+      'click .submit_form .submit'          : 'submitForm',
+      'click .login_form .submit'           : 'submitLogin',
+      'click .to_harvest .view_timesheet'   : 'changeHref',
+      'click .user_info .logout'            : 'logout',
+      'keypress .hours input[name=hours]'   : 'maskUserInput',
 
-      'submit form.login':                    'submitLogin',
-
-      'app.activated': 'appActivated',
+      'app.activated'                       : 'appActivated',
 
       /** Ajax Callbocks **/
-      'getEverything.done':  'handleGetEverythingResult',
-      'postHours.done':      'handlePostHoursResult',
-      'startTimer.done':     'handleStartTimerResult',
-      'stopTimer.done':      'handleStopTimerResult',
+      'getEverything.done'                  : 'handleGetEverythingResult',
+      'getAuth.done'                        : 'handleGetAuthResult',
+      'postHours.done'                      : 'handlePostHoursResult',
+      'startTimer.done'                     : 'handleStartTimerResult',
+      'stopTimer.done'                      : 'handleStopTimerResult',
 
-      'getEverything.fail':     'handleFailedRequest',
-      'postHours.fail':         'handleFailedRequest',
-      'startTimer.fail':        'handleFailedRequest',
-      'stopTimer.fail':         'handleFailedRequest'
+      'getEverything.fail'                  : 'handleFailedRequest',
+      'getAuth.fail'                        : 'handleAuthFailedRequest',
+      'postHours.fail'                      : 'handleFailedRequest',
+      'startTimer.fail'                     : 'handleFailedRequest',
+      'stopTimer.fail'                      : 'handleFailedRequest'
     },
 
     appActivated: function(data) {
       var firstLoad = data && data.firstLoad;
       if ( !firstLoad ) { return; }
 
-      this.setupAuth();
+      this.store('email', this.settings.email);
+      this.store('password', this.settings.password);
 
       this.firstRequest();
-    },
-
-    setupAuth: function() {
-      var self = this;
-      _.bind(this._switchToAuth);
-      this.switchTo = _.wrap(this.switchTo, this._switchToAuth);
-    },
-
-    _switchToAuth: function(swTo, templateName, data) {
-      if (!this._authenticate()) {
-        this.store('returnTo', {
-          templateName : templateName,
-          data         : data
-        });
-        templateName = 'login';
-      }
-      swTo.call(this, templateName, data || {});
     },
 
     changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(HARVEST_URI, this.settings.url)); },
@@ -94,10 +81,31 @@
       this.ajax('getEverything');
     },
 
+    handleGetAuthResult: function(data, textStatus, response) {
+      this.handleGetEverythingResult(data, textStatus. response);
+    },
+
+    handleAuthFailedRequest: function(jqXHR, textStatus, errorThrown) {
+      this._resetAuthState();
+      this.showLoginInfo(false);
+      var message = textStatus === 'parsererror' ?
+                                    this.I18n.t('invalidResponse') :
+                                    this.I18n.t('problem', { error: jqXHR.responseText });
+      // Show error message on login screen.
+      this.switchTo('login', {
+        message: this.I18n.t('loginError')
+      });
+    },
+
     handleGetEverythingResult: function(data, textStatus, response) {
       var divTimer = this.$('.entry'),
           projects = data.projects || [],
           notes;
+
+      if ( !this._authenticated() ) {
+        this.switchTo('login');
+        return;
+      }
 
       // Validation
       if ( this._throwException(data.projects, response) ) { return; }
@@ -114,6 +122,7 @@
       // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
       //       and deployed to production, remove ", this._renderContext()".
       notes = this.I18n.t('form.notes_message', this._renderContext());
+      this.showLoginInfo(true);
       this.switchTo('submitForm', { clients: this.clients, notes: notes });
     },
 
@@ -203,6 +212,28 @@
       }
     },
 
+    submitLogin: function(evt) {
+      var $form = this.$('.login_form form'),
+          $email = $form.find('input[name=email]'),
+          $password = $form.find('input[name=password]');
+
+      if (this.validateForm($form)) {
+        this.disableSubmit($form);
+        this.store('email', $email.val());
+        this.store('password', $password.val());
+        this._resetAppState();
+        this.ajax('getAuth');
+      }
+      return false;
+    },
+
+    logout: function(evt) {
+      this._resetAuthState();
+      this.showLoginInfo(false);
+      this.switchTo('login');
+      return false;
+    },
+
     timerRunning: function(data) {
       var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject'), match;
 
@@ -243,7 +274,7 @@
         dataType: 'json',
         url:      resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.store('email'), this.store('password')))
         }
       };
     },
@@ -271,7 +302,7 @@
         type:         'POST',
         url:          resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.email, this.settings.password))
         }
       };
     },
@@ -282,6 +313,13 @@
       this.projects = [];
 
       clearTimeout(this.currentTimeoutID);
+    },
+
+    _resetAuthState: function() {
+      var self = this;
+      _.each(['email', 'password'], function(key) {
+        self.store(key, false);
+      });
     },
 
     _throwException: function(field, response) {
@@ -296,42 +334,16 @@
       return this.renderAndEscapeXML('add.xml', options);
     },
 
-    _authenticate: function() {
-      /*if (this.store('')) {
-
-      }*/
-      return false;
+    _authenticated: function() {
+      return _.isString(this.store('email')) &&
+        _.isString(this.store('password'));
     },
-
-    //_switchTo: this.switchTo,
-
-    /*switchTo: function(templateName, data) {
-      if (!this._authenticate()) {
-        this.store('returnTo', {
-          templateName : templateName,
-          data         : data
-        });
-        templateName = 'login';
-      }
-      this._switchTo(templateName, data || {});
-    },*/
-
-    /*switchTo: _.wrap(this._switchTo, function(swTo, templateName, data) {
-      if (!this._authenticate()) {
-        this.store('returnTo', {
-          templateName : templateName,
-          data         : data
-        });
-        templateName = 'login';
-      }
-      swTo(templateName, data || {});
-    }),*/
 
     /** Helpers **/
     disableSubmit: function(form) {
-      var submit = form.find('input[type=submit]');
-      submit
-        .data('originalValue', submit.val())
+      var $submit = form.find('input[type=submit]');
+      $submit
+        .data('originalValue', $submit.val())
         .prop('disabled', true)
         .val(this.I18n.t('global.submitting'));
     },
@@ -345,6 +357,8 @@
 
     // API returns text and status code 200 when request fails =/
     handleFailedRequest: function(jqXHR, textStatus, errorThrown) {
+      this._resetAuthState();
+      this.showLoginInfo(false);
       var message = textStatus === 'parsererror' ?
                                     this.I18n.t('invalidResponse') :
                                     this.I18n.t('problem', { error: jqXHR.responseText });
@@ -359,11 +373,48 @@
       this.switchTo('success', { message: msg });
     },
 
+    showLoginInfo: function(show) {
+      var $userInfo = this.$('.user_info'),
+          $toHarvest = this.$('.to_harvest');
+      if (_.isBoolean(show) && show) {
+        $userInfo.empty().append(this.renderTemplate('user_info')).show();
+        $toHarvest.show();
+      } else {
+        $userInfo.hide();
+        $toHarvest.hide();
+      }
+    },
+
     renderAndEscapeXML: function(templateName, data) {
       Object.keys(data).forEach(function(key) {
         data[key] = helpers.safeString( data[key] );
       });
       return encodeURI( this.renderTemplate(templateName, data) );
+    },
+
+    invalidFields: function($form) {
+      var self = this;
+      return $form.find('input').filter(function(index, field) {
+        var $f = self.$(field),
+            isBlank = ($f.val() == null || $f.val() === '');
+        return $f.attr('required') && isBlank;
+      });
+    },
+
+    notifyInvalidFields: function($invalidFields) {
+      var self = this;
+      $invalidFields.each(function(index, field) {
+        var $f = self.$(field),
+            message = self.I18n.t('form.empty', { field: $f.data('fieldTitle') });
+        services.notify(message, 'error');
+      });
+    },
+
+    validateForm: function($form) {
+      var $invalidFields = this.invalidFields($form),
+          anyInvalidFields = $invalidFields.length > 0;
+      this.notifyInvalidFields($invalidFields);
+      return !anyInvalidFields;
     }
 
   };

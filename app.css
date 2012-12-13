@@ -23,6 +23,15 @@ header .logo {
   background-size: 23px 23px;
 }
 
+.user_info {
+  color: gray;
+  margin: -5px 0 8px;
+  text-align: right;
+  .logout {
+    margin-left: 5px;
+  }
+}
+
 .entry {
   .field_label {
     font-weight: bold;
@@ -55,6 +64,12 @@ header .logo {
 
   .success {
     color: green;
+  }
+}
+
+.login_form {
+  .message {
+    margin-bottom: 10px;
   }
 }
 

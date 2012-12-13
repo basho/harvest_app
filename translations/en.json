@@ -2,7 +2,7 @@
   "app": {
     "parameters": {
       "password": { "label": "Password" },
-      "username": { "label": "Username" },
+      "email":    { "label": "Username" },
       "url":      { "label": "URL" }
     },
 
@@ -34,6 +34,8 @@
     "submit":     "Submit",
     "submitting": "Submitting..."
   },
+
+  "loginError": "There was an error logging you in, please check your details and retry.",
 
   "invalidResponse": "API response contains invalid data!",
 
