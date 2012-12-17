@@ -2,12 +2,8 @@ ul {
   margin-left: 0;
 }
 
-label {
-  margin-bottom: 5px;
-}
-
 input {
-  margin-bottom: 9px;
+  margin: 5px 0 9px;
 }
 
 select {
