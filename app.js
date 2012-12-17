@@ -65,7 +65,7 @@
       var firstLoad = data && data.firstLoad;
       if ( !firstLoad ) { return; }
 
-      this.store('email', this.settings.email);
+      this.store('email', this.settings.username);
       this.store('password', this.settings.password);
 
       this.firstRequest();
@@ -345,7 +345,7 @@
         type:         'POST',
         url:          resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.email, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
         }
       };
     },

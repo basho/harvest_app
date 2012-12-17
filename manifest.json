@@ -17,7 +17,7 @@
     },
 
     {
-      "name": "email",
+      "name": "username",
       "type": "text",
       "required": true
     },
