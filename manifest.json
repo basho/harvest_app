@@ -19,13 +19,13 @@
     {
       "name": "username",
       "type": "text",
-      "required": true
+      "required": false
     },
 
     {
       "name": "password",
       "type": "password",
-      "required": true
+      "required": false
     },
 
     {
