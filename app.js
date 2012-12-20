@@ -272,7 +272,7 @@
 
       if (this.validateForm($form)) {
         this.disableSubmit($form);
-        this.store('email', $email.val());
+        this.store('username', $email.val());
         this.store('password', $password.val());
         this._resetAppState();
         this.ajax('getAuth');
@@ -327,7 +327,7 @@
         dataType: 'json',
         url:      resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.store('email'), this.store('password')))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.store('username'), this.store('password')))
         }
       };
     },
@@ -386,7 +386,7 @@
     },
 
     _authenticated: function() {
-      return _.isString(this.store('email')) &&
+      return _.isString(this.store('username')) &&
         _.isString(this.store('password'));
     },
 
