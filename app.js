@@ -65,10 +65,20 @@
       var firstLoad = data && data.firstLoad;
       if ( !firstLoad ) { return; }
 
-      this.store('email', this.settings.username);
-      this.store('password', this.settings.password);
+      var login = true;
+      _.each(['username', 'password'], function(key) {
+        if (!_.isUndefined(this.settings[key])) {
+          this.store(key, this.settings[key]);
+        } else {
+          login = false;
+        }
+      }, this);
 
-      this.firstRequest();
+      if (login) {
+        this.firstRequest();
+      } else {
+        this.switchTo('login');
+      }
     },
 
     changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(HARVEST_URI, this.settings.url)); },
