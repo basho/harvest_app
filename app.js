@@ -292,8 +292,8 @@
       var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject'), match;
 
       if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running.
-        match = lastDayEntry.notes.match(/Zendesk #([\d]*)/);
-        if (match && match[1] == this.ticket().id()) { return true; }
+        var namespace = helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain());
+        return lastDayEntry.external_ref.namespace === namespace && lastDayEntry.external_ref.id == this.ticket().id();
       }
       return false;
     },
@@ -317,9 +317,14 @@
       if (_.isString(this.settings.defaultNote) && this.settings.defaultNote.length > 0) {
         return this.settings.defaultNote;
       }
-      // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
-      //       and deployed to production, remove ", this._renderContext()".
-      return this.I18n.t('form.notes_message', this._renderContext());
+
+      var ticket = {
+        id: this.ticket().id(),
+        subject: this.ticket().subject(),
+        requester: { name: this.ticket().requester().name() }
+      };
+
+      return this.I18n.t('form.notes_message', { ticket : ticket });
     },
 
     _getRequest: function(resource) {
