@@ -355,7 +355,7 @@
         type:         'POST',
         url:          resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.store('username'), this.store('password')))
         }
       };
     },
