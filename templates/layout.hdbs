@@ -2,6 +2,8 @@
   <span class="logo"/>
   <h3>{{setting "title"}}</h3>
 </header>
+<section class="user_info">
+</section>
 <section data-main />
 <section class="entries"></section>
 <section class="to_harvest">

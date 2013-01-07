@@ -1,5 +1,6 @@
 (function() {
 
+
   var DAILY_ADD_URI = "%@/daily/add.json",
       DAILY_URI     = "%@/daily.json",
       HARVEST_URI   = "%@/daily",
@@ -19,11 +20,12 @@
     projects         : [],
     
     requests: {
-      'getEverything' : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
-      'getEntries'    : function(ticketID) { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), ticketID) ); },
-      'postHours'     : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'startTimer'    : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'stopTimer'     : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
+      'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getEntries'    : function() { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), this.ticket().id()) ); },
+      'getAuth':        function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
@@ -33,7 +35,9 @@
       'click .submit_form .cancel_duration' : 'toggleHoursTimer',
       'click .message .back'                : 'firstRequest',
       'click .submit_form .submit'          : 'submitForm',
+      'click .login_form .submit'           : 'submitLogin',
       'click .to_harvest .view_timesheet'   : 'changeHref',
+      'click .user_info .logout'            : 'logout',
       'keypress .hours input[name=hours]'   : 'maskUserInput',
 
       /* Data API events */
@@ -41,14 +45,16 @@
 
       'app.activated'                       : 'appActivated',
 
-      /** Ajax Callbacks **/
+      /** Ajax Callbocks **/
       'getEverything.done'                  : 'handleGetEverythingResult',
       'getEntries.done'                     : 'handleGetEntriesResult',
+      'getAuth.done'                        : 'handleGetAuthResult',
       'postHours.done'                      : 'handlePostHoursResult',
       'startTimer.done'                     : 'handleStartTimerResult',
       'stopTimer.done'                      : 'handleStopTimerResult',
 
       'getEverything.fail'                  : 'handleFailedRequest',
+      'getAuth.fail'                        : 'handleAuthFailedRequest',
       'getEntries.fail'                     : 'handleFailedRequest',
       'postHours.fail'                      : 'handleFailedRequest',
       'startTimer.fail'                     : 'handleFailedRequest',
@@ -59,7 +65,20 @@
       var firstLoad = data && data.firstLoad;
       if ( !firstLoad ) { return; }
 
-      this.firstRequest();
+      var login = true;
+      _.each(['username', 'password'], function(key) {
+        if (!_.isUndefined(this.settings[key])) {
+          this.store(key, this.settings[key]);
+        } else {
+          login = false;
+        }
+      }, this);
+
+      if (login) {
+        this.firstRequest();
+      } else {
+        this.switchTo('login');
+      }
     },
 
     changeHref: function() { this.$('.to_harvest .view_timesheet').attr('href', helpers.fmt(HARVEST_URI, this.settings.url)); },
@@ -86,7 +105,7 @@
     handleSubdomainChanged: function() {
       if (this.currentAccount() &&
           _.isString(this.currentAccount().subdomain())) {
-        this.ajax('getEntries', this.ticket().id());
+        this.ajax('getEntries');
       }
     },
 
@@ -109,13 +128,35 @@
       this.$('.entries').empty().append(entries);
     },
 
+    handleGetAuthResult: function(data, textStatus, response) {
+      this.ajax('getEntries');
+      this.handleGetEverythingResult(data, textStatus. response);
+    },
+
+    handleAuthFailedRequest: function(jqXHR, textStatus, errorThrown) {
+      this._resetAuthState();
+      this.showLoginInfo(false);
+      var message = textStatus === 'parsererror' ?
+                                    this.I18n.t('invalidResponse') :
+                                    this.I18n.t('problem', { error: jqXHR.responseText });
+      // Show error message on login screen.
+      this.switchTo('login', {
+        message: this.I18n.t('loginError')
+      });
+    },
+
     handleGetEverythingResult: function(data, textStatus, response) {
       var divTimer = this.$('.entry'),
           projects = data.projects || [],
           notes;
 
+      if ( !this._authenticated() ) {
+        this.switchTo('login');
+        return;
+      }
+
       // Validation
-      if ( this._throwException(data.projects, response) ) { return; }
+      if ( this._throwException(_.has(data, 'projects'), response) ) { return; }
       if ( projects.length === 0 ) { this.showError(this.I18n.t('form.no_projects')); return; }
 
       // If timer for this ticket is running, render it, otherwise, show submit form
@@ -126,6 +167,8 @@
       }
 
       this._populateClientsAndProjects(projects);
+
+      this.showLoginInfo(true);
 
       this.switchTo('submitForm', { clients: this.clients, notes: this._getNotes() });
     },
@@ -222,12 +265,35 @@
       }
     },
 
+    submitLogin: function(evt) {
+      var $form = this.$('.login_form form'),
+          $email = $form.find('input[name=email]'),
+          $password = $form.find('input[name=password]');
+
+      if (this.validateForm($form)) {
+        this.disableSubmit($form);
+        this.store('username', $email.val());
+        this.store('password', $password.val());
+        this._resetAppState();
+        this.ajax('getAuth');
+      }
+      return false;
+    },
+
+    logout: function(evt) {
+      this._resetAppState();
+      this._resetAuthState();
+      this.showLoginInfo(false);
+      this.switchTo('login');
+      return false;
+    },
+
     timerRunning: function(data) {
       var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject'), match;
 
       if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running.
-        match = lastDayEntry.notes.match(/Zendesk #([\d]*)/);
-        if (match && match[1] == this.ticket().id()) { return true; }
+        var namespace = helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain());
+        return lastDayEntry.external_ref.namespace === namespace && lastDayEntry.external_ref.id == this.ticket().id();
       }
       return false;
     },
@@ -251,9 +317,14 @@
       if (_.isString(this.settings.defaultNote) && this.settings.defaultNote.length > 0) {
         return this.settings.defaultNote;
       }
-      // TODO: after https://zendesk.atlassian.net/browse/APPS-203 is done
-      //       and deployed to production, remove ", this._renderContext()".
-      return this.I18n.t('form.notes_message', this._renderContext());
+
+      var ticket = {
+        id: this.ticket().id(),
+        subject: this.ticket().subject(),
+        requester: { name: this.ticket().requester().name() }
+      };
+
+      return this.I18n.t('form.notes_message', { ticket : ticket });
     },
 
     _getRequest: function(resource) {
@@ -261,7 +332,7 @@
         dataType: 'json',
         url:      resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.store('username'), this.store('password')))
         }
       };
     },
@@ -289,7 +360,7 @@
         type:         'POST',
         url:          resource,
         headers: {
-          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.settings.username, this.settings.password))
+          'Authorization': 'Basic ' + Base64.encode(helpers.fmt('%@:%@', this.store('username'), this.store('password')))
         }
       };
     },
@@ -304,6 +375,13 @@
       clearTimeout(this.currentTimeoutID);
     },
 
+    _resetAuthState: function() {
+      var self = this;
+      _.each(['email', 'password'], function(key) {
+        self.store(key, false);
+      });
+    },
+
     _throwException: function(field, response) {
       if ( !field ) {
         this.showError(this.I18n.t('exception', { error: response.responseText })); // API returns text and status code 200 when request fails =/
@@ -312,11 +390,16 @@
       return false;
     },
 
+    _authenticated: function() {
+      return _.isString(this.store('username')) &&
+        _.isString(this.store('password'));
+    },
+
     /** Helpers **/
     disableSubmit: function(form) {
-      var submit = form.find('input[type=submit]');
-      submit
-        .data('originalValue', submit.val())
+      var $submit = form.find('input[type=submit]');
+      $submit
+        .data('originalValue', $submit.val())
         .prop('disabled', true)
         .val(this.I18n.t('global.submitting'));
     },
@@ -330,6 +413,8 @@
 
     // API returns text and status code 200 when request fails =/
     handleFailedRequest: function(jqXHR, textStatus, errorThrown) {
+      this._resetAuthState();
+      this.showLoginInfo(false);
       var message = textStatus === 'parsererror' ?
                                     this.I18n.t('invalidResponse') :
                                     this.I18n.t('problem', { error: jqXHR.responseText });
@@ -342,6 +427,43 @@
 
     showSuccess: function(msg) {
       this.switchTo('success', { message: msg });
+    },
+
+    showLoginInfo: function(show) {
+      var $userInfo = this.$('.user_info'),
+          $toHarvest = this.$('.to_harvest');
+      if (_.isBoolean(show) && show) {
+        $userInfo.empty().append(this.renderTemplate('user_info')).show();
+        $toHarvest.show();
+      } else {
+        $userInfo.hide();
+        $toHarvest.hide();
+      }
+    },
+
+    invalidFields: function($form) {
+      var self = this;
+      return $form.find('input').filter(function(index, field) {
+        var $f = self.$(field),
+            isBlank = ($f.val() == null || $f.val() === '');
+        return $f.attr('required') && isBlank;
+      });
+    },
+
+    notifyInvalidFields: function($invalidFields) {
+      var self = this;
+      $invalidFields.each(function(index, field) {
+        var $f = self.$(field),
+            message = self.I18n.t('form.empty', { field: $f.data('fieldTitle') });
+        services.notify(message, 'error');
+      });
+    },
+
+    validateForm: function($form) {
+      var $invalidFields = this.invalidFields($form),
+          anyInvalidFields = $invalidFields.length > 0;
+      this.notifyInvalidFields($invalidFields);
+      return !anyInvalidFields;
     }
 
   };

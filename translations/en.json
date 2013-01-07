@@ -2,7 +2,7 @@
   "app": {
     "parameters": {
       "password"    : { "label": "Password" },
-      "username"    : { "label": "Username" },
+      "email"       : { "label": "Username" },
       "url"         : { "label": "URL" },
       "defaultNote" : { "label": "Default Note" }
     },
@@ -24,8 +24,10 @@
     "project":          "Project",
     "start_timer":      "Start Timer",
     "stop_timer":       "Stop Timer",
-    "success":          "Hours sucessfuly logged!",
-    "task":             "Task"
+    "success":          "Hours sucessfully logged!",
+    "task":             "Task",
+    "harvest_email":    "Harvest Email",
+    "harvest_password": "Harvest Password"
   },
 
   "global": {
@@ -33,6 +35,8 @@
     "submit":     "Submit",
     "submitting": "Submitting..."
   },
+
+  "loginError": "There was an error logging you in, please check your details and retry.",
 
   "invalidResponse": "API response contains invalid data!",
 

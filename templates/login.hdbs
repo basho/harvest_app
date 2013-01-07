@@ -1,0 +1,12 @@
+<div class="login_form">
+  {{#if message}}
+    <p class="message">{{message}}</p>
+  {{/if}}
+  <form>
+    <label>{{t "form.harvest_email"}}
+    <input type="text" name="email" required="required" data-field-title="{{t "form.harvest_email"}}" /></label>
+    <label>{{t "form.harvest_password"}}
+    <input type="password" name="password" required="required" data-field-title="{{t "form.harvest_password"}}" /></label>
+    <p><input type="submit" class="submit btn btn-inverse" value="{{t "global.submit"}}"/></p>
+  </form>
+</div>
