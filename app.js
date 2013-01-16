@@ -67,10 +67,12 @@
 
       var login = true;
       _.each(['username', 'password'], function(key) {
-        if (!_.isUndefined(this.settings[key])) {
-          this.store(key, this.settings[key]);
-        } else {
-          login = false;
+        if (!_.isString(this.store(key))) {
+          if (!_.isUndefined(this.settings[key])) {
+            this.store(key, this.settings[key]);
+          } else {
+            login = false;
+          }
         }
       }, this);
 
