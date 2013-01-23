@@ -1,0 +1,6 @@
+<div class="confirm">
+  <h4>{{t "confirm.title"}}</h4>
+  <p></p>
+  <a href="#" class="btn dont_start_timer">{{t "confirm.dont_start_timer"}}</a>
+  <a href="#" class="btn btn-inverse do_start_timer">{{t "confirm.start_timer"}}</a>
+</div>
