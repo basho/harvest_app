@@ -153,17 +153,11 @@
     },
 
     handleGetExistingTimerResult: function(data, textStatus, response) {
-      var lastEntry = {},
-          timerIsRunning = false,
-          $confirm;
-      timerIsRunning = _.has(data, 'day_entries') && _.some(data.day_entries, function(entry) {
-        if (_.has(entry, 'timer_started_at')) {
-          lastEntry = entry;
-          return true;
-        }
-        return false;
+      var $confirm,
+          lastEntry = _.has(data, 'day_entries') && _.find(data.day_entries, function(entry) {
+        return _.has(entry, 'timer_started_at');
       });
-      if (timerIsRunning) {
+      if (lastEntry) {
         this.$('[data-main]').append(this.renderTemplate('confirm'));
         $confirm = this.$('.confirm');
         $confirm.find('p').html(this.I18n.t('confirm.description', lastEntry));
