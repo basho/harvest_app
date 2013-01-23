@@ -60,6 +60,7 @@
       'getEverything.fail'                  : 'handleFailedRequest',
       'getAuth.fail'                        : 'handleAuthFailedRequest',
       'getEntries.fail'                     : 'handleFailedRequest',
+      'getExistingTimer.fail'               : 'handleFailedRequest',
       'postHours.fail'                      : 'handleFailedRequest',
       'startTimer.fail'                     : 'handleFailedRequest',
       'stopTimer.fail'                      : 'handleFailedRequest'
