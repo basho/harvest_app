@@ -164,8 +164,11 @@
     },
 
     showConfirmationDialog: function(lastEntry) {
-      this.$('[data-main]').append( this.renderTemplate('confirm') );
       var $confirm = this.$('.confirm');
+      if ($confirm.length > 0) $confirm.remove();
+      $confirm = this.$('[data-main]')
+                     .append( this.renderTemplate('confirm') )
+                     .find('.confirm');
       $confirm
         .find('p').html( this.I18n.t('confirm.description', lastEntry) ).end()
         .css({ height: $confirm.parent().height() });
