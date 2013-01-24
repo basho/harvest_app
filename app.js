@@ -153,20 +153,22 @@
     },
 
     handleGetExistingTimerResult: function(data, textStatus, response) {
-      var $confirm,
-          lastEntry = _.has(data, 'day_entries') && _.find(data.day_entries, function(entry) {
+      var lastEntry = _.has(data, 'day_entries') && _.find(data.day_entries, function(entry) {
         return _.has(entry, 'timer_started_at');
       });
       if (lastEntry) {
-        this.$('[data-main]').append(this.renderTemplate('confirm'));
-        $confirm = this.$('.confirm');
-        $confirm.find('p').html(this.I18n.t('confirm.description', lastEntry));
-        $confirm.css({
-          height: $confirm.parent().height()
-        });
+        this.showConfirmationDialog(lastEntry);
       } else {
         this.timerStart();
       }
+    },
+
+    showConfirmationDialog: function(lastEntry) {
+      this.$('[data-main]').append( this.renderTemplate('confirm') );
+      var $confirm = this.$('.confirm');
+      $confirm
+        .find('p').html( this.I18n.t('confirm.description', lastEntry) ).end()
+        .css({ height: $confirm.parent().height() });
     },
 
     handleGetEverythingResult: function(data, textStatus, response) {
