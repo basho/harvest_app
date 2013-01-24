@@ -18,6 +18,10 @@
     currentTimeoutID : undefined,
     entryID          : undefined,
     projects         : [],
+    fullUser         : undefined,
+    fullOrg          : undefined,
+    formOrgVal       : undefined,
+
     
     requests: {
       'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
@@ -25,7 +29,21 @@
       'getAuth':        function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
       'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
+      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); },
+      'getFullUser':    function(userID) {
+                          return {
+                            url: '/api/v2/users/' + userID + '.json',
+                            dataType: 'json',
+                            type: 'GET'
+                          };
+                        },
+      'getOrg':         function(orgID) { 
+                          return {
+                            url: '/api/v2/organizations/'+orgID+'.json',
+                            dataType: 'json',
+                            type: 'GET'
+                          };
+                        }
     },
 
     events: {
@@ -39,6 +57,7 @@
       'click .to_harvest .view_timesheet'   : 'changeHref',
       'click .user_info .logout'            : 'logout',
       'keypress .hours input[name=hours]'   : 'maskUserInput',
+      'ready .submit_form .projects'        : 'changeProject',
 
       /* Data API events */
       'currentAccount.subdomain.changed'    : 'handleSubdomainChanged',
@@ -52,6 +71,8 @@
       'postHours.done'                      : 'handlePostHoursResult',
       'startTimer.done'                     : 'handleStartTimerResult',
       'stopTimer.done'                      : 'handleStopTimerResult',
+      'getFullUser.done'                    : 'setFullUser',
+      'getOrg.done'                         : 'setOrg', 
 
       'getEverything.fail'                  : 'handleFailedRequest',
       'getAuth.fail'                        : 'handleAuthFailedRequest',
@@ -89,9 +110,9 @@
       var form = this.$('.submit_form form'),
           hours = form.find('input[name=hours]').val(),
           notes = form.find('textarea[name=notes]').val(),
-          projectID = form.find('select[name=project_id]').val();
+          projectID = form.find('select[name=project_id]').val() || this.formOrgVal;
 
-      if ( projectID.length === 0 ) { return; }
+      if (!projectID || projectID.length === 0 ) { return; }
 
       this.switchTo('submitForm', { clients: this.clients, hours: hours, notes: notes, tasks: this.projects[projectID] });
 
@@ -101,7 +122,23 @@
     firstRequest: function() {
       this._resetAppState();
       this.ajax('getEverything');
+      this.ajax( 'getFullUser', this.ticket().requester().id() );
       this.handleSubdomainChanged();
+    },
+      
+    setFullUser: function(data, textStatus, response) {
+      this.fullUser = data.user;
+      this.ajax('getOrg', this.fullUser.organization_id);
+    },
+
+    setOrg: function(data, textStatus, response) {
+      this.fullOrg = data.organization;
+      this.setProjectForOrg();
+    },
+
+    setProjectForOrg: function() {
+      this.formOrgVal = this.$('.submit_form form select[name=project_id] option:contains("' + this.fullOrg.name + '")').val();
+      this.changeProject();
     },
 
     handleSubdomainChanged: function() {
