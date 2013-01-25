@@ -18,14 +18,15 @@
     currentTimeoutID : undefined,
     entryID          : undefined,
     projects         : [],
-    
+
     requests: {
-      'getEverything':  function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
-      'getEntries'    : function() { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), this.ticket().id()) ); },
-      'getAuth':        function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
-      'postHours':      function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'startTimer':     function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'stopTimer':      function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
+      'getEverything'    : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getEntries'       : function() { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), this.ticket().id()) ); },
+      'getAuth'          : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'getExistingTimer' : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
+      'postHours'        : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'startTimer'       : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
+      'stopTimer'        : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
     },
 
     events: {
@@ -38,6 +39,8 @@
       'click .login_form .submit'           : 'submitLogin',
       'click .to_harvest .view_timesheet'   : 'changeHref',
       'click .user_info .logout'            : 'logout',
+      'click .dont_start_timer'             : 'timerCancel',
+      'click .do_start_timer'               : 'timerStart',
       'keypress .hours input[name=hours]'   : 'maskUserInput',
 
       /* Data API events */
@@ -49,6 +52,7 @@
       'getEverything.done'                  : 'handleGetEverythingResult',
       'getEntries.done'                     : 'handleGetEntriesResult',
       'getAuth.done'                        : 'handleGetAuthResult',
+      'getExistingTimer.done'               : 'handleGetExistingTimerResult',
       'postHours.done'                      : 'handlePostHoursResult',
       'startTimer.done'                     : 'handleStartTimerResult',
       'stopTimer.done'                      : 'handleStopTimerResult',
@@ -56,6 +60,7 @@
       'getEverything.fail'                  : 'handleFailedRequest',
       'getAuth.fail'                        : 'handleAuthFailedRequest',
       'getEntries.fail'                     : 'handleFailedRequest',
+      'getExistingTimer.fail'               : 'handleFailedRequest',
       'postHours.fail'                      : 'handleFailedRequest',
       'startTimer.fail'                     : 'handleFailedRequest',
       'stopTimer.fail'                      : 'handleFailedRequest'
@@ -147,6 +152,28 @@
       });
     },
 
+    handleGetExistingTimerResult: function(data, textStatus, response) {
+      var lastEntry = _.has(data, 'day_entries') && _.find(data.day_entries, function(entry) {
+        return _.has(entry, 'timer_started_at');
+      });
+      if (lastEntry) {
+        this.showConfirmationDialog(lastEntry);
+      } else {
+        this.timerStart();
+      }
+    },
+
+    showConfirmationDialog: function(lastEntry) {
+      var $confirm = this.$('.confirm');
+      if ($confirm.length > 0) $confirm.remove();
+      $confirm = this.$('[data-main]')
+                     .append( this.renderTemplate('confirm') )
+                     .find('.confirm');
+      $confirm
+        .find('p').html( this.I18n.t('confirm.description', lastEntry) ).end()
+        .css({ height: $confirm.parent().height() });
+    },
+
     handleGetEverythingResult: function(data, textStatus, response) {
       var divTimer = this.$('.entry'),
           projects = data.projects || [],
@@ -231,6 +258,15 @@
       this.ajax('stopTimer', this.entryID);
     },
 
+    timerCancel: function() {
+      this.enableSubmit(this.$('.submit_form'));
+      this.$('.confirm').remove();
+    },
+
+    timerStart: function(evt) {
+      this.ajax('startTimer', this.store('startTimerData'));
+    },
+
     // Submit hours or start timer.
     // Timer is exactly the same request as 'submit hours', but with hours field empty (API will start the timer instead of just saving hours).
     submitForm: function() {
@@ -248,12 +284,12 @@
       }
 
       this.disableSubmit(form);
-      
+
       data = {
-        project_id         : project.val(),
-        task_id            : task.val(),
-        notes              : notes.val(),
-        hours              : hours.val(),
+        project_id   : project.val(),
+        task_id      : task.val(),
+        notes        : notes.val(),
+        hours        : hours.val(),
         external_ref : {
           namespace : helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain()),
           id        : this.ticket().id()
@@ -263,7 +299,8 @@
       if ( divHours.is(':visible') ) {
         this.ajax('postHours', data);
       } else {
-        this.ajax('startTimer', data);
+        this.store('startTimerData', data);
+        this.ajax('getExistingTimer');
       }
     },
 
@@ -291,11 +328,13 @@
     },
 
     timerRunning: function(data) {
-      var dayEntries = data.day_entries || [], lastDayEntry = dayEntries.get('lastObject'), match;
-
+      var dayEntries = data.day_entries || [],
+          lastDayEntry = dayEntries.get('lastObject');
       if (lastDayEntry && lastDayEntry.timer_started_at) { // timer_started_at present if timer is running.
-        var namespace = helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain());
-        return lastDayEntry.external_ref.namespace === namespace && lastDayEntry.external_ref.id == this.ticket().id();
+        if (_.has(lastDayEntry, 'external_ref')) {
+          var namespace = helpers.fmt("https://%@.zendesk.com", this.currentAccount().subdomain());
+          return lastDayEntry.external_ref.namespace === namespace && lastDayEntry.external_ref.id == this.ticket().id();
+        }
       }
       return false;
     },
@@ -447,7 +486,7 @@
       var self = this;
       return $form.find('input').filter(function(index, field) {
         var $f = self.$(field),
-            isBlank = ($f.val() == null || $f.val() === '');
+            isBlank = ($f.val() === null || $f.val() === '');
         return $f.attr('required') && isBlank;
       });
     },

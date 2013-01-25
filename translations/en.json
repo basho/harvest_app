@@ -36,6 +36,13 @@
     "submitting": "Submitting..."
   },
 
+  "confirm": {
+    "title"            : "A timer is already running!",
+    "description"      : "Harvest only allows one timer running per user at a time. It seems that you already have a timer running for: <strong>{{project}}/{{task}}</strong>. Starting a new timer will stop the other timer.",
+    "start_timer"      : "Start new timer anyway",
+    "dont_start_timer" : "Don't start a new timer"
+  },
+
   "loginError": "There was an error logging you in, please check your details and retry.",
 
   "invalidResponse": "API response contains invalid data!",
