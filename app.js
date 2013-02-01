@@ -120,12 +120,12 @@
       // Render entries
       var entryData = _.map(_.toArray(data).reverse().slice(0, this.MAX_ENTRIES), function(entry) {
         var dayEntry = entry.day_entry,
-            entryDate = new Date(Date.parse(dayEntry.spent_at));
+            entryDate = this._parseDate(dayEntry.spent_at);
         return {
           name: helpers.fmt('%@ %@. (%@)', dayEntry.user_first_name, dayEntry.user_last_name.charAt(0).toUpperCase(), helpers.fmt('%@ %@', MONTH_NAMES[entryDate.getMonth()], entryDate.getDate())),
           hours: dayEntry.hours
         };
-      });
+      },this);
       if (_.isEmpty(entryData)) {
         return;
       }
@@ -352,6 +352,13 @@
       if ( hour < 10 ) { hour = helpers.fmt("0%@", hour); }
       if ( minutes < 10 ) { minutes = helpers.fmt("0%@", minutes); }
       return (helpers.fmt("%@:%@", hour, minutes));
+    },
+
+    // parse a date in yyyy-mm-dd format: http://stackoverflow.com/questions/2587345/javascript-date-parse
+    _parseDate: function(input) {
+      var parts = input.match(/(\d+)/g);
+      // new Date(year, month [, date [, hours[, minutes[, seconds[, ms]]]]])
+      return new Date(parts[0], parts[1]-1, parts[2]); // months are 0-based
     },
 
     _getNotes: function() {
