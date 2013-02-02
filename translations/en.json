@@ -1,11 +1,12 @@
 {
   "app": {
     "parameters": {
-      "password"    : { "label": "Password" },
-      "email"       : { "label": "Username" },
-      "url"         : { "label": "URL" },
-      "defaultNote" : { "label": "Default Note" }
-    },
+      "url"         : { "label":    "URL",
+                        "helpText": "The full URL of your Harvest account"
+                      },
+      "defaultNote" : { "label":    "Default Note",
+                        "helpText": "Pre-populate the note field (you can edit this before starting a timer)" }
+                      },
 
     "description":  "Track time on tickets, with powerful reporting"
   },

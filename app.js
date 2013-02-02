@@ -70,18 +70,7 @@
       var firstLoad = data && data.firstLoad;
       if ( !firstLoad ) { return; }
 
-      var login = true;
-      _.each(['username', 'password'], function(key) {
-        if (!_.isString(this.store(key))) {
-          if (!_.isUndefined(this.settings[key])) {
-            this.store(key, this.settings[key]);
-          } else {
-            login = false;
-          }
-        }
-      }, this);
-
-      if (login) {
+      if (this.store('username') && this.store('password')) {
         this.firstRequest();
       } else {
         this.switchTo('login');
