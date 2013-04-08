@@ -450,8 +450,6 @@
 
     // API returns text and status code 200 when request fails =/
     handleFailedRequest: function(jqXHR, textStatus, errorThrown) {
-      this._resetAuthState();
-      this.showLoginInfo(false);
       var message = textStatus === 'parsererror' ?
                                     this.I18n.t('invalidResponse') :
                                     this.I18n.t('problem', { error: jqXHR.responseText });
