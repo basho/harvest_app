@@ -25,7 +25,10 @@
     currentTimeoutID : undefined,
     entryID          : undefined,
     projects         : [],
-    
+    fullUser         : undefined,
+    fullOrg          : undefined,
+    formOrgVal       : undefined, 
+
     requests: {
       'getEverything'    : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
       'getEntries'       : function() { return this._getRequest( helpers.fmt(ENTRIES_URI, this.settings.url, this.currentAccount().subdomain(), this.ticket().id()) ); },
@@ -34,6 +37,20 @@
       'postHours'        : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer'       : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'stopTimer'        : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
+      'getFullUser':    function(userID) {
+                          return {
+                            url: '/api/v2/users/' + userID + '.json',
+                            dataType: 'json',
+                            type: 'GET'
+                          };
+                        },
+      'getOrg':         function(orgID) { 
+                          return {
+                            url: '/api/v2/organizations/'+orgID+'.json',
+                            dataType: 'json',
+                            type: 'GET'
+                          };
+                        }
     },
 
     events: {
