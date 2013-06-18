@@ -17,18 +17,6 @@
     },
 
     {
-      "name": "username",
-      "type": "text",
-      "required": false
-    },
-
-    {
-      "name": "password",
-      "type": "password",
-      "required": false
-    },
-
-    {
       "name": "defaultNote",
       "type": "multiline",
       "required": false

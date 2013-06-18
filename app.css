@@ -99,6 +99,27 @@ header .logo {
   }
 }
 
+section[data-main] {
+  position: relative;
+}
+
+.confirm {
+  background-color : white;
+  position         : absolute;
+  text-align       : center;
+  top              : 0;
+  h4 {
+    margin: 20px 0 15px;
+  }
+  p {
+    margin-bottom: 15px;
+  }
+  .btn {
+    display       : block;
+    margin-bottom : 5px;
+  }
+}
+
 .to_harvest {
   a {
     color: gray;
