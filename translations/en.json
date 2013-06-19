@@ -1,6 +1,8 @@
 {
   "app": {
     "parameters": {
+      "password"    : { "label": "Password" },
+      "email"       : { "label": "Username" },
       "url"         : { "label":    "URL",
                         "helpText": "The full URL of your Harvest account"
                       },

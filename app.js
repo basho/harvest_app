@@ -36,8 +36,8 @@
       'getExistingTimer' : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
       'postHours'        : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
       'startTimer'       : function(data) { return this._postRequest( data, helpers.fmt(DAILY_ADD_URI, this.settings.url) ); },
-      'stopTimer'        : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); }
-      'getFullUser':    function(userID) {
+      'stopTimer'        : function(entryID) { return this._getRequest( helpers.fmt(TIMER_URI, this.settings.url, entryID) ); },
+      'getFullUser'      : function(userID) {
                           return {
                             url: '/api/v2/users/' + userID + '.json',
                             dataType: 'json',
@@ -97,6 +97,10 @@
       var firstLoad = data && data.firstLoad;
       if ( !firstLoad ) { return; }
 
+      // Always use stored single session
+      this.store('username', this.settings.username);
+      this.store('password', this.settings.password);
+      
       if (this.store('username') && this.store('password')) {
         this.firstRequest();
       } else {
