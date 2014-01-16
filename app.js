@@ -27,7 +27,10 @@
     projects         : [],
     fullUser         : undefined,
     fullOrg          : undefined,
-    formOrgVal       : undefined, 
+    formOrgVal       : undefined,
+
+    harvestDataPromise : undefined,
+    zendeskOrgPromise  : undefined,
 
     requests: {
       'getEverything'    : function() { return this._getRequest( helpers.fmt(DAILY_URI, this.settings.url) ); },
@@ -121,23 +124,31 @@
       this.switchTo('submitForm', { clients: this.clients, hours: hours, notes: notes, tasks: this.projects[projectID] });
 
       this.$('.submit_form form select[name=project_id]').val(projectID);
+
+      // Dirty gross hack to select "Support" by default
+      this.$('.submit_form form select[name=task_id]').val(this.$('.submit_form form select[name=task_id] option:contains("Support")')[0].value);
     },
 
     firstRequest: function() {
       this._resetAppState();
-      this.ajax('getEverything');
+      this.harvestDataPromise = this.ajax('getEverything');
       this.ajax( 'getFullUser', this.ticket().requester().id() );
       this.handleSubdomainChanged();
     },
       
     setFullUser: function(data, textStatus, response) {
       this.fullUser = data.user;
-      this.ajax('getOrg', this.fullUser.organization_id);
+      this.zendeskOrgPromise = this.ajax('getOrg', this.fullUser.organization_id);
     },
 
     setOrg: function(data, textStatus, response) {
-      this.fullOrg = data.organization;
-      this.setProjectForOrg();
+      var whenReady = function() {
+        this.fullOrg = data.organization;
+        this.setProjectForOrg();
+      }.bind(this);
+      this.when(this.zendeskOrgPromise, this.harvestDataPromise).then(whenReady, function() {
+        console.error("Couldn't preselect project -- something failed to load, either the zendesk org data or the harvest data.");
+      });
     },
 
     setProjectForOrg: function() {
